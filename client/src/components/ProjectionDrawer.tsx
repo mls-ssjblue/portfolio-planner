@@ -476,8 +476,8 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
       ? 'flex flex-col h-full bg-[oklch(0.14_0.04_255)]'
       : 'fixed inset-y-0 right-0 w-[480px] bg-[oklch(0.14_0.04_255)] border-l border-[oklch(1_0_0/8%)] shadow-2xl z-50 flex flex-col'
     }>
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between p-4 border-b border-[oklch(1_0_0/8%)]">
+      {/* ── Header ──────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between p-4 border-b border-[oklch(1_0_0/8%)] shrink-0">
         <div>
           <div className="flex items-center gap-2">
             <span className="font-mono text-xl font-bold text-foreground">{stock.ticker}</span>
@@ -510,9 +510,11 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
         </div>
       </div>
 
-      {/* ── Live Financials Row ─────────────────────────────────────────────── */}
-      <div className="px-4 py-3 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.15_0.04_255)]">
-        {/* Price + Valuation Method */}
+      {/* ── Scrollable body (all content below header) ── */}
+      <div className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+
+      {/* ── Live Financials Row ─────────────────────────────────────────────────── */}
+      <div className="px-4 py-3 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.15_0.04_255)]">     {/* Price + Valuation Method */}
         <div className="grid grid-cols-3 gap-3 mb-3">
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Current Price</p>
@@ -622,7 +624,7 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
         </div>
       </div>
 
-      {/* ── Scenario Summary Cards ──────────────────────────────────────────── */}
+      {/* ── Scenario Summary Cards ────────────────────────────────────────────── */}
       <div className="px-4 py-3 border-b border-[oklch(1_0_0/8%)]">
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
           {years}yr Target Price & Return
@@ -659,15 +661,13 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
             );
           })}
         </div>
-      </div>
-
-      {/* ── Mini Growth Chart ───────────────────────────────────────────────── */}
+      </div>      {/* ── Mini Growth Chart ─────────────────────────────────────────────────── */}
       <div className="px-4 py-3 border-b border-[oklch(1_0_0/8%)]">
         <MiniGrowthChart proj={proj} years={years} />
       </div>
 
-      {/* ── Scenario Tabs ───────────────────────────────────────────────────── */}
-      <ScrollArea className="flex-1">
+      {/* ── Scenario Tabs ──────────────────────────────────────────────────────── */}
+      <div>
         <div className="p-4">
           <div className="mb-3 p-2.5 rounded-lg bg-[oklch(0.75_0.12_75/8%)] border border-[oklch(0.75_0.12_75/20%)]">
             <p className="text-[10px] text-[oklch(0.75_0.12_75)] font-medium">
@@ -704,7 +704,9 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
             ))}
           </Tabs>
         </div>
-      </ScrollArea>
+      </div>
+
+      </div>{/* end scrollable body */}
     </div>
   );
 }

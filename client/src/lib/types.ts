@@ -132,5 +132,5 @@ export const DEFAULT_PROJECTIONS: StockProjections = {
   currentPE: 20,
   currentPS: 10,
   currentFCF: 800,
-  valuationMethod: 'pe',
+  valuationMethod: 'ps', // Default to P/S — most relevant for growth stocks
 };

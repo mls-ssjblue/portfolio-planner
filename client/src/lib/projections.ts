@@ -16,34 +16,68 @@ export function calcTargetPrice(
 ): number {
   const method = currentData.valuationMethod;
 
-  // If manual override set (e.g. BTC, ETF), use direct price CAGR
-  if (method === 'price' && proj.targetPriceOverride !== undefined) {
-    return proj.targetPriceOverride;
-  }
+  // Helper: P/S target price
+  const calcPS = () => {
+    if (proj.sharesOutstanding <= 0) return 0;
+    const futureRevenue = proj.revenueCurrentYear * Math.pow(1 + proj.revenueGrowthRate / 100, years);
+    const revenuePerShare = (futureRevenue * 1e6) / (proj.sharesOutstanding * 1e6);
+    return revenuePerShare * proj.psMultiple;
+  };
 
-  if (method === 'pe') {
-    // Future EPS = currentEPS * (1 + epsGrowthRate/100)^years
+  // Helper: P/E target price
+  const calcPE = () => {
     const futureEPS = proj.epsCurrentYear * Math.pow(1 + proj.epsGrowthRate / 100, years);
     return futureEPS * proj.peMultiple;
-  }
+  };
 
-  if (method === 'ps') {
-    // Future Revenue per share = (currentRevenue * (1+g)^n) / shares
-    const futureRevenue = proj.revenueCurrentYear * Math.pow(1 + proj.revenueGrowthRate / 100, years);
-    const revenuePerShare = (futureRevenue * 1e6) / (proj.sharesOutstanding * 1e6); // both in millions
-    return revenuePerShare * proj.psMultiple;
-  }
-
-  if (method === 'fcf') {
-    // Future FCF per share = (currentFCF * (1+g)^n) / shares
+  // Helper: P/FCF target price
+  const calcFCF = () => {
+    if (proj.sharesOutstanding <= 0) return 0;
     const futureFCF = proj.fcfCurrentYear * Math.pow(1 + proj.fcfGrowthRate / 100, years);
     const fcfPerShare = (futureFCF * 1e6) / (proj.sharesOutstanding * 1e6);
     return fcfPerShare * proj.fcfMultiple;
+  };
+
+  // Manual price override (e.g. BTC, ETF)
+  if (method === 'price') {
+    if (proj.targetPriceOverride !== undefined && proj.targetPriceOverride > 0) {
+      return proj.targetPriceOverride;
+    }
+    // Fallback to best available method
   }
 
-  // Fallback: use PE
-  const futureEPS = proj.epsCurrentYear * Math.pow(1 + proj.epsGrowthRate / 100, years);
-  return futureEPS * proj.peMultiple;
+  if (method === 'pe') {
+    const result = calcPE();
+    if (result > 0) return result;
+    // Auto-fallback: try P/S if EPS is zero
+    const psResult = calcPS();
+    if (psResult > 0) return psResult;
+    return calcFCF();
+  }
+
+  if (method === 'ps') {
+    const result = calcPS();
+    if (result > 0) return result;
+    // Auto-fallback: try P/E if revenue/shares are zero
+    const peResult = calcPE();
+    if (peResult > 0) return peResult;
+    return calcFCF();
+  }
+
+  if (method === 'fcf') {
+    const result = calcFCF();
+    if (result > 0) return result;
+    const psResult = calcPS();
+    if (psResult > 0) return psResult;
+    return calcPE();
+  }
+
+  // Final fallback: try all methods in order
+  const peResult = calcPE();
+  if (peResult > 0) return peResult;
+  const psResult = calcPS();
+  if (psResult > 0) return psResult;
+  return calcFCF();
 }
 
 /**

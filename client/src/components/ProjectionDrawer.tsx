@@ -446,11 +446,11 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Current Price</p>
             <div className="flex items-center gap-1">
-              <Input
-                type="number"
-                defaultValue={proj.currentPrice}
-                onBlur={(e) => updateCurrentData({ currentPrice: parseFloat(e.target.value) || proj.currentPrice })}
-                className="h-7 text-sm font-mono bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]"
+              <NumberInput
+                label=""
+                value={proj.currentPrice}
+                onChange={(v) => updateCurrentData({ currentPrice: v })}
+                prefix="$"
                 step={0.01}
                 min={0}
               />
@@ -458,11 +458,12 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
           </div>
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Market Cap ($M)</p>
-            <Input
-              type="number"
-              defaultValue={proj.currentMarketCap}
-              onBlur={(e) => updateCurrentData({ currentMarketCap: parseFloat(e.target.value) || proj.currentMarketCap })}
-              className="h-7 text-sm font-mono bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]"
+            <NumberInput
+              label=""
+              value={proj.currentMarketCap}
+              onChange={(v) => updateCurrentData({ currentMarketCap: v })}
+              prefix="$"
+              suffix="M"
               step={1000}
               min={0}
             />
@@ -489,19 +490,20 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
         {/* Current financials row */}
         <div className="grid grid-cols-4 gap-2">
           {[
-            { label: 'Revenue $M', key: 'currentRevenue' as const, step: 100 },
-            { label: 'Net Inc $M', key: 'currentNetIncome' as const, step: 100 },
-            { label: 'EPS $', key: 'currentEPS' as const, step: 0.01 },
-            { label: 'FCF $M', key: 'currentFCF' as const, step: 100 },
-          ].map(({ label, key, step }) => (
+            { label: 'Revenue $M', key: 'currentRevenue' as const, step: 100, prefix: '$', suffix: 'M' },
+            { label: 'Net Inc $M', key: 'currentNetIncome' as const, step: 100, prefix: '$', suffix: 'M' },
+            { label: 'EPS $', key: 'currentEPS' as const, step: 0.01, prefix: '$', suffix: '' },
+            { label: 'FCF $M', key: 'currentFCF' as const, step: 100, prefix: '$', suffix: 'M' },
+          ].map(({ label, key, step, prefix, suffix }) => (
             <div key={key}>
-              <p className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
-              <Input
-                type="number"
-                defaultValue={proj[key]}
-                onBlur={(e) => updateCurrentData({ [key]: parseFloat(e.target.value) || 0 })}
-                className="h-6 text-xs font-mono bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]"
+              <NumberInput
+                label={label}
+                value={proj[key] as number}
+                onChange={(v) => updateCurrentData({ [key]: v })}
+                prefix={prefix}
+                suffix={suffix}
                 step={step}
+                min={0}
               />
             </div>
           ))}

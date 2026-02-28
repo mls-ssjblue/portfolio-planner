@@ -29,6 +29,7 @@ type MobileTab = 'library' | 'portfolio' | 'analytics';
 
 export default function Home() {
   const portfolios = usePortfolioStore((s) => s.portfolios);
+  const hasHydrated = usePortfolioStore((s) => s._hasHydrated);
   const createPortfolio = usePortfolioStore((s) => s.createPortfolio);
   const projectionDrawerOpen = usePortfolioStore((s) => s.projectionDrawerOpen);
   const setProjectionDrawerOpen = usePortfolioStore((s) => s.setProjectionDrawerOpen);
@@ -41,12 +42,12 @@ export default function Home() {
   const [mobileTab, setMobileTab] = useState<MobileTab>('portfolio');
   const stockLibrary = usePortfolioStore((s) => s.stockLibrary);
 
-  // Create default portfolio on first load
+  // Create default portfolio only after hydration confirms no saved portfolios exist
   useEffect(() => {
-    if (portfolios.length === 0) {
+    if (hasHydrated && portfolios.length === 0) {
       createPortfolio('My Portfolio');
     }
-  }, []);
+  }, [hasHydrated]);
 
   // Sensors: require 8px movement before drag starts (prevents accidental drags on click)
   const sensors = useSensors(

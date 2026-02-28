@@ -8,6 +8,10 @@ import type { Portfolio, PortfolioStock, Stock } from './types';
 import { DEFAULT_PROJECTIONS, SAMPLE_STOCKS } from './sampleData';
 
 interface PortfolioStore {
+  // Hydration tracking
+  _hasHydrated: boolean;
+  setHasHydrated: (v: boolean) => void;
+
   // Stock library
   stockLibrary: Stock[];
   addStockToLibrary: (stock: Stock) => void;
@@ -63,6 +67,8 @@ export const usePortfolioStore = create<PortfolioStore>()(
       activePortfolioId: null,
       selectedStockId: null,
       projectionDrawerOpen: false,
+      _hasHydrated: false,
+      setHasHydrated: (v) => set({ _hasHydrated: v }),
 
       addStockToLibrary: (stock) =>
         set((s) => ({ stockLibrary: [...s.stockLibrary, stock] })),
@@ -268,6 +274,28 @@ export const usePortfolioStore = create<PortfolioStore>()(
     }),
     {
       name: 'portfolio-planner-v2',
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.setHasHydrated(true);
+          // Only create a default portfolio if none were persisted
+          if (state.portfolios.length === 0) {
+            const id = nanoid();
+            const defaultPortfolio = {
+              id,
+              name: 'My Portfolio',
+              totalCapital: 100000,
+              allocationMode: 'percentage' as const,
+              stocks: [],
+              cashPct: 100,
+              projectionYears: 5,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            };
+            state.portfolios = [defaultPortfolio];
+            state.activePortfolioId = id;
+          }
+        }
+      },
       partialize: (state) => ({
         stockLibrary: state.stockLibrary,
         portfolios: state.portfolios,

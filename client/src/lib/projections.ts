@@ -1,5 +1,6 @@
 // Portfolio Planner — Projection Engine
-// Calculates target prices and portfolio values for bear/base/bull scenarios
+// Calculation chain: Revenue → Net Margin → Net Income → EPS → P/E → Target Price
+// (matches 1000x Stocks methodology)
 
 import type { ScenarioProjection, Stock, StockProjections } from './types';
 
@@ -7,64 +8,83 @@ export type Scenario = 'bear' | 'base' | 'bull';
 
 /**
  * Calculate the implied target price for a stock in a given scenario after N years.
- * Uses the selected valuation method.
+ *
+ * Primary method (P/E):
+ *   Future Revenue = currentRevenueB × (1 + revenueGrowthRate/100)^N  [in $B]
+ *   Future Net Income = Future Revenue × (netMarginPct/100)             [in $B]
+ *   Future EPS = Future Net Income / currentSharesB                     [$/share]
+ *   Target Price = Future EPS × peMultiple
+ *
+ * Alternative P/S method:
+ *   Revenue Per Share = Future Revenue / currentSharesB
+ *   Target Price = Revenue Per Share × psMultiple
+ *
+ * Alternative P/FCF method:
+ *   Future FCF = Future Revenue × (fcfMarginPct/100)
+ *   FCF Per Share = Future FCF / currentSharesB
+ *   Target Price = FCF Per Share × fcfMultiple
  */
 export function calcTargetPrice(
   proj: ScenarioProjection,
-  currentData: Pick<StockProjections, 'currentPrice' | 'valuationMethod'>,
+  currentData: Pick<StockProjections, 'currentPrice' | 'currentRevenueB' | 'currentSharesB' | 'valuationMethod'>,
   years: number
 ): number {
-  const method = currentData.valuationMethod;
+  const { currentRevenueB, currentSharesB, valuationMethod } = currentData;
 
-  // Helper: P/S target price
-  const calcPS = () => {
-    if (proj.sharesOutstanding <= 0) return 0;
-    const futureRevenue = proj.revenueCurrentYear * Math.pow(1 + proj.revenueGrowthRate / 100, years);
-    const revenuePerShare = (futureRevenue * 1e6) / (proj.sharesOutstanding * 1e6);
-    return revenuePerShare * proj.psMultiple;
-  };
+  // Guard: need shares outstanding
+  const shares = currentSharesB > 0 ? currentSharesB : 1;
 
-  // Helper: P/E target price
-  const calcPE = () => {
-    const futureEPS = proj.epsCurrentYear * Math.pow(1 + proj.epsGrowthRate / 100, years);
+  // Future revenue in $B
+  const futureRevenueB = currentRevenueB * Math.pow(1 + proj.revenueGrowthRate / 100, years);
+
+  // P/E method: Revenue → Net Income → EPS → Price
+  const calcPE = (): number => {
+    if (proj.peMultiple <= 0 || proj.netMarginPct === 0) return 0;
+    const futureNetIncomeB = futureRevenueB * (proj.netMarginPct / 100);
+    const futureEPS = (futureNetIncomeB * 1e9) / (shares * 1e9); // B/B = ratio
     return futureEPS * proj.peMultiple;
   };
 
-  // Helper: P/FCF target price
-  const calcFCF = () => {
-    if (proj.sharesOutstanding <= 0) return 0;
-    const futureFCF = proj.fcfCurrentYear * Math.pow(1 + proj.fcfGrowthRate / 100, years);
-    const fcfPerShare = (futureFCF * 1e6) / (proj.sharesOutstanding * 1e6);
+  // P/S method: Revenue per share × P/S multiple
+  const calcPS = (): number => {
+    if (proj.psMultiple <= 0) return 0;
+    const revenuePerShare = (futureRevenueB * 1e9) / (shares * 1e9);
+    return revenuePerShare * proj.psMultiple;
+  };
+
+  // P/FCF method: FCF per share × P/FCF multiple
+  const calcFCF = (): number => {
+    if (proj.fcfMultiple <= 0 || proj.fcfMarginPct === 0) return 0;
+    const futureFCFB = futureRevenueB * (proj.fcfMarginPct / 100);
+    const fcfPerShare = (futureFCFB * 1e9) / (shares * 1e9);
     return fcfPerShare * proj.fcfMultiple;
   };
 
-  // Manual price override (e.g. BTC, ETF)
-  if (method === 'price') {
+  // Manual price override
+  if (valuationMethod === 'price') {
     if (proj.targetPriceOverride !== undefined && proj.targetPriceOverride > 0) {
       return proj.targetPriceOverride;
     }
     // Fallback to best available method
   }
 
-  if (method === 'pe') {
+  if (valuationMethod === 'pe') {
     const result = calcPE();
     if (result > 0) return result;
-    // Auto-fallback: try P/S if EPS is zero
     const psResult = calcPS();
     if (psResult > 0) return psResult;
     return calcFCF();
   }
 
-  if (method === 'ps') {
+  if (valuationMethod === 'ps') {
     const result = calcPS();
     if (result > 0) return result;
-    // Auto-fallback: try P/E if revenue/shares are zero
     const peResult = calcPE();
     if (peResult > 0) return peResult;
     return calcFCF();
   }
 
-  if (method === 'fcf') {
+  if (valuationMethod === 'fcf') {
     const result = calcFCF();
     if (result > 0) return result;
     const psResult = calcPS();

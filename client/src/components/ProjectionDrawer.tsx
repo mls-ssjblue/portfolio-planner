@@ -1,9 +1,11 @@
 // Portfolio Planner — Projection Drawer
 // Design: Sophisticated Finance Dashboard (deep navy + gold)
-// Per-stock bear/base/bull financial projection inputs
+// Projection model: Revenue → Net Margin → EPS → P/E → Target Price
+// (matches 1000x Stocks methodology)
 
 import { useState, useEffect, useRef } from 'react';
-import { X, TrendingUp, TrendingDown, Minus, Info, DollarSign, BarChart2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { X, TrendingUp, TrendingDown, Minus, Info, BarChart2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,13 +13,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartTooltip,
-  ResponsiveContainer, Legend,
+  ResponsiveContainer,
 } from 'recharts';
 import { usePortfolioStore } from '@/lib/store';
 import type { ScenarioProjection, StockProjections } from '@/lib/types';
 import { calcTargetPrice, calcCAGR, formatCurrency, formatPct, formatMultiple } from '@/lib/projections';
+import { useStockRefresh } from '@/hooks/useStockRefresh';
 
 type Scenario = 'bear' | 'base' | 'bull';
 
@@ -27,6 +31,7 @@ const SCENARIO_CONFIG = {
   bull: { label: 'Bull Case', color: 'oklch(0.55 0.15 145)', bg: 'oklch(0.55 0.15 145 / 15%)', icon: TrendingUp },
 };
 
+// ── Controlled number input with debounced save ──────────────────────────────
 function NumberInput({
   label,
   value,
@@ -37,6 +42,7 @@ function NumberInput({
   step = 1,
   min,
   max,
+  className = '',
 }: {
   label: string;
   value: number;
@@ -47,21 +53,21 @@ function NumberInput({
   step?: number;
   min?: number;
   max?: number;
+  className?: string;
 }) {
-  const [localVal, setLocalVal] = useState(value.toString());
+  const safeValue = value ?? 0;
+  const [localVal, setLocalVal] = useState(safeValue.toString());
   const [focused, setFocused] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync localVal when value changes externally (e.g. switching stocks)
   useEffect(() => {
     if (!focused) {
-      setLocalVal(value.toString());
+      setLocalVal((value ?? 0).toString());
     }
   }, [value, focused]);
 
   const handleChange = (raw: string) => {
     setLocalVal(raw);
-    // Debounce save to store so data persists even without blur
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       const num = parseFloat(raw);
@@ -77,30 +83,31 @@ function NumberInput({
   };
 
   return (
-    <div>
-      <div className="flex items-center gap-1 mb-1">
-        <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</Label>
-        {tooltip && (
-          <Tooltip>
-            <TooltipTrigger>
-              <Info className="w-3 h-3 text-muted-foreground/50" />
-            </TooltipTrigger>
-            <TooltipContent className="text-xs max-w-48">{tooltip}</TooltipContent>
-          </Tooltip>
-        )}
-      </div>
+    <div className={className}>
+      {label && (
+        <div className="flex items-center gap-1 mb-1">
+          <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</Label>
+          {tooltip && (
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="w-3 h-3 text-muted-foreground/50" />
+              </TooltipTrigger>
+              <TooltipContent className="text-xs max-w-48">{tooltip}</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+      )}
       <div className="relative flex items-center">
         {prefix && (
           <span className="absolute left-2 text-xs text-muted-foreground pointer-events-none">{prefix}</span>
         )}
         <Input
           type="number"
-          value={focused ? localVal : value}
-          onFocus={() => { setLocalVal(value.toString()); setFocused(true); }}
+          value={focused ? localVal : (value ?? 0)}
+          onFocus={() => { setLocalVal((value ?? 0).toString()); setFocused(true); }}
           onChange={(e) => handleChange(e.target.value)}
           onBlur={() => {
             setFocused(false);
-            // Immediate save on blur (cancel debounce)
             if (debounceRef.current) clearTimeout(debounceRef.current);
             const num = parseFloat(localVal);
             if (!isNaN(num)) {
@@ -127,23 +134,33 @@ function NumberInput({
   );
 }
 
-// ── Mini Growth Chart ────────────────────────────────────────────────────
-function MiniGrowthChart({ proj, years }: { proj: import('@/lib/types').StockProjections; years: number }) {
+// ── Derived value display ────────────────────────────────────────────────────
+function DerivedValue({ label, value, color }: { label: string; value: string; color?: string }) {
+  return (
+    <div className="rounded p-2 bg-[oklch(1_0_0/3%)] border border-[oklch(1_0_0/6%)]">
+      <p className="text-[9px] text-muted-foreground uppercase tracking-wider mb-0.5">{label}</p>
+      <p className="font-mono text-xs font-semibold" style={{ color: color || 'inherit' }}>{value}</p>
+    </div>
+  );
+}
+
+// ── Mini Revenue Projection Chart ────────────────────────────────────────────
+function MiniGrowthChart({ proj, years }: { proj: StockProjections; years: number }) {
   const data = Array.from({ length: years + 1 }, (_, i) => {
-    const bearRev = proj.bear.revenueCurrentYear * Math.pow(1 + proj.bear.revenueGrowthRate / 100, i);
-    const baseRev = proj.base.revenueCurrentYear * Math.pow(1 + proj.base.revenueGrowthRate / 100, i);
-    const bullRev = proj.bull.revenueCurrentYear * Math.pow(1 + proj.bull.revenueGrowthRate / 100, i);
-    const bearNI = proj.bear.netIncomeCurrentYear * Math.pow(1 + proj.bear.netIncomeGrowthRate / 100, i);
-    const baseNI = proj.base.netIncomeCurrentYear * Math.pow(1 + proj.base.netIncomeGrowthRate / 100, i);
-    const bullNI = proj.bull.netIncomeCurrentYear * Math.pow(1 + proj.bull.netIncomeGrowthRate / 100, i);
+    const bearRev = proj.currentRevenueB * Math.pow(1 + proj.bear.revenueGrowthRate / 100, i);
+    const baseRev = proj.currentRevenueB * Math.pow(1 + proj.base.revenueGrowthRate / 100, i);
+    const bullRev = proj.currentRevenueB * Math.pow(1 + proj.bull.revenueGrowthRate / 100, i);
+    const bearNI = bearRev * (proj.bear.netMarginPct / 100);
+    const baseNI = baseRev * (proj.base.netMarginPct / 100);
+    const bullNI = bullRev * (proj.bull.netMarginPct / 100);
     return {
       year: i === 0 ? 'Now' : `Y${i}`,
-      'Bear Rev': Math.round(bearRev),
-      'Base Rev': Math.round(baseRev),
-      'Bull Rev': Math.round(bullRev),
-      'Bear NI': Math.round(bearNI),
-      'Base NI': Math.round(baseNI),
-      'Bull NI': Math.round(bullNI),
+      'Bear Rev': parseFloat(bearRev.toFixed(2)),
+      'Base Rev': parseFloat(baseRev.toFixed(2)),
+      'Bull Rev': parseFloat(bullRev.toFixed(2)),
+      'Base NI': parseFloat(baseNI.toFixed(2)),
+      'Bear NI': parseFloat(bearNI.toFixed(2)),
+      'Bull NI': parseFloat(bullNI.toFixed(2)),
     };
   });
 
@@ -156,7 +173,7 @@ function MiniGrowthChart({ proj, years }: { proj: import('@/lib/types').StockPro
             <div key={p.name} className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full" style={{ background: p.stroke }} />
               <span className="text-muted-foreground">{p.name}:</span>
-              <span className="font-mono" style={{ color: p.stroke }}>${p.value.toLocaleString()}M</span>
+              <span className="font-mono" style={{ color: p.stroke }}>${p.value.toFixed(1)}B</span>
             </div>
           ))}
         </div>
@@ -167,8 +184,10 @@ function MiniGrowthChart({ proj, years }: { proj: import('@/lib/types').StockPro
 
   return (
     <div className="rounded-lg p-3 bg-[oklch(1_0_0/3%)] border border-[oklch(1_0_0/6%)]">
-      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Revenue & Net Income Projection ($M)</p>
-      <div className="h-36">
+      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+        Revenue & Net Income Projection ($B)
+      </p>
+      <div className="h-32">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 2, right: 2, bottom: 0, left: 0 }}>
             <defs>
@@ -179,198 +198,221 @@ function MiniGrowthChart({ proj, years }: { proj: import('@/lib/types').StockPro
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 5%)" vertical={false} />
             <XAxis dataKey="year" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 8, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={40}
-              tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}B` : `${v}M`} />
+            <YAxis tick={{ fontSize: 8, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={36}
+              tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}T` : `${v}B`} />
             <RechartTooltip content={<CustomTooltip />} />
             <Area type="monotone" dataKey="Bull Rev" stroke="#22c55e" strokeWidth={1.5} fill="url(#bullRevGrad)" dot={false} strokeDasharray="4 2" />
             <Area type="monotone" dataKey="Base Rev" stroke="#c9a84c" strokeWidth={2} fill="none" dot={false} />
             <Area type="monotone" dataKey="Bear Rev" stroke="#dc4040" strokeWidth={1.5} fill="none" dot={false} strokeDasharray="4 2" />
-            <Area type="monotone" dataKey="Base NI" stroke="#c9a84c" strokeWidth={1} fill="none" dot={false} strokeDasharray="2 2" opacity={0.6} />
+            <Area type="monotone" dataKey="Base NI" stroke="#c9a84c" strokeWidth={1} fill="none" dot={false} strokeDasharray="2 2" opacity={0.5} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
       <div className="flex items-center gap-3 mt-1 text-[9px] text-muted-foreground">
-        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 bg-[#22c55e]" /> Bull Rev</span>
-        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 bg-[#c9a84c]" /> Base Rev</span>
-        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 bg-[#dc4040]" /> Bear Rev</span>
-        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 bg-[#c9a84c] opacity-60" style={{borderTop:'1px dashed #c9a84c'}} /> Base NI</span>
+        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 bg-[#22c55e]" /> Bull</span>
+        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 bg-[#c9a84c]" /> Base</span>
+        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 bg-[#dc4040]" /> Bear</span>
+        <span className="flex items-center gap-1 opacity-60"><span className="inline-block w-4 h-px border-t border-dashed border-[#c9a84c]" /> NI</span>
       </div>
     </div>
   );
 }
 
+// ── Scenario Form: the core inputs ──────────────────────────────────────────
 function ScenarioForm({
   scenario,
   projData,
+  currentData,
   onChange,
-  valuationMethod,
+  years,
 }: {
   scenario: Scenario;
   projData: ScenarioProjection;
+  currentData: StockProjections;
   onChange: (updates: Partial<ScenarioProjection>) => void;
-  valuationMethod: string;
+  years: number;
 }) {
   const cfg = SCENARIO_CONFIG[scenario];
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const shares = currentData.currentSharesB > 0 ? currentData.currentSharesB : 1;
+
+  // Derived values from the Revenue → Margin → EPS → P/E chain
+  const futureRevenueB = currentData.currentRevenueB * Math.pow(1 + projData.revenueGrowthRate / 100, years);
+  const futureNetIncomeB = futureRevenueB * (projData.netMarginPct / 100);
+  const futureEPS = futureNetIncomeB / shares; // $B / B shares = $/share
+  const targetPricePE = futureEPS * projData.peMultiple;
+  const revenuePerShare = futureRevenueB / shares;
+  const targetPricePS = revenuePerShare * projData.psMultiple;
+  const futureFCFB = futureRevenueB * (projData.fcfMarginPct / 100);
+  const fcfPerShare = futureFCFB / shares;
+  const targetPriceFCF = fcfPerShare * projData.fcfMultiple;
+
+  const primaryTarget = calcTargetPrice(projData, currentData, years);
+  const cagr = currentData.currentPrice > 0
+    ? calcCAGR(primaryTarget / currentData.currentPrice, years)
+    : 0;
 
   return (
     <div className="space-y-4">
-      {/* Revenue Section */}
+      {/* ── Step 1: Revenue Growth ─────────────────────────────────────────── */}
       <div className="rounded-lg p-3 bg-[oklch(1_0_0/3%)] border border-[oklch(1_0_0/6%)]">
-        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
-          <BarChart2 className="w-3.5 h-3.5" />
-          Revenue
-        </h4>
+        <div className="flex items-center gap-1.5 mb-3">
+          <span className="text-[10px] font-bold rounded px-1.5 py-0.5 text-white" style={{ background: cfg.color }}>1</span>
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Revenue Growth</h4>
+        </div>
         <div className="grid grid-cols-2 gap-3">
-          <NumberInput
-            label="Current Revenue ($M)"
-            value={projData.revenueCurrentYear}
-            onChange={(v) => onChange({ revenueCurrentYear: v })}
-            prefix="$"
-            suffix="M"
-            tooltip="Annual revenue in millions USD (TTM)"
-            step={100}
-            min={0}
-          />
           <NumberInput
             label="Annual Growth Rate"
             value={projData.revenueGrowthRate}
             onChange={(v) => onChange({ revenueGrowthRate: v })}
             suffix="%"
-            tooltip="Expected annual revenue growth rate"
+            tooltip={`Expected annual revenue growth rate over ${years} years`}
             step={0.5}
+          />
+          <DerivedValue
+            label={`Year ${years} Revenue`}
+            value={`$${futureRevenueB >= 1000 ? (futureRevenueB/1000).toFixed(1)+'T' : futureRevenueB.toFixed(1)+'B'}`}
+            color={cfg.color}
+          />
+        </div>
+      </div>
+
+      {/* ── Step 2: Profitability ──────────────────────────────────────────── */}
+      <div className="rounded-lg p-3 bg-[oklch(1_0_0/3%)] border border-[oklch(1_0_0/6%)]">
+        <div className="flex items-center gap-1.5 mb-3">
+          <span className="text-[10px] font-bold rounded px-1.5 py-0.5 text-white" style={{ background: cfg.color }}>2</span>
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Profitability at Exit</h4>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <NumberInput
+            label="Net Margin %"
+            value={projData.netMarginPct}
+            onChange={(v) => onChange({ netMarginPct: v })}
+            suffix="%"
+            tooltip={`Expected net profit margin in year ${years}`}
+            step={0.5}
+            min={-100}
+            max={100}
+          />
+          <NumberInput
+            label="FCF Margin %"
+            value={projData.fcfMarginPct}
+            onChange={(v) => onChange({ fcfMarginPct: v })}
+            suffix="%"
+            tooltip={`Expected free cash flow margin in year ${years}`}
+            step={0.5}
+            min={-50}
+            max={100}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2 mt-2">
+          <DerivedValue
+            label={`Year ${years} Net Income`}
+            value={`$${Math.abs(futureNetIncomeB) >= 1 ? futureNetIncomeB.toFixed(1)+'B' : (futureNetIncomeB*1000).toFixed(0)+'M'}`}
+            color={futureNetIncomeB >= 0 ? cfg.color : '#dc4040'}
+          />
+          <DerivedValue
+            label={`Year ${years} EPS`}
+            value={futureEPS !== 0 ? `$${futureEPS.toFixed(2)}` : 'N/A'}
+            color={futureEPS >= 0 ? cfg.color : '#dc4040'}
+          />
+        </div>
+      </div>
+
+      {/* ── Step 3: Valuation Multiples ────────────────────────────────────── */}
+      <div className="rounded-lg p-3 bg-[oklch(1_0_0/3%)] border border-[oklch(1_0_0/6%)]">
+        <div className="flex items-center gap-1.5 mb-3">
+          <span className="text-[10px] font-bold rounded px-1.5 py-0.5 text-white" style={{ background: cfg.color }}>3</span>
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Exit Multiples</h4>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <NumberInput
+            label="P/E Multiple"
+            value={projData.peMultiple}
+            onChange={(v) => onChange({ peMultiple: v })}
+            suffix="x"
+            tooltip="Price-to-Earnings multiple at exit year"
+            step={1}
+            min={0}
           />
           <NumberInput
             label="P/S Multiple"
             value={projData.psMultiple}
             onChange={(v) => onChange({ psMultiple: v })}
             suffix="x"
-            tooltip="Price-to-Sales multiple at exit"
+            tooltip="Price-to-Sales multiple at exit year"
             step={0.5}
             min={0}
           />
           <NumberInput
-            label="Gross Margin"
-            value={projData.grossMargin}
-            onChange={(v) => onChange({ grossMargin: v })}
-            suffix="%"
-            tooltip="Gross profit margin"
-            step={0.5}
-            min={0}
-            max={100}
-          />
-        </div>
-      </div>
-
-      {/* Earnings Section */}
-      <div className="rounded-lg p-3 bg-[oklch(1_0_0/3%)] border border-[oklch(1_0_0/6%)]">
-        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
-          <DollarSign className="w-3.5 h-3.5" />
-          Earnings & EPS
-        </h4>
-        <div className="grid grid-cols-2 gap-3">
-          <NumberInput
-            label="Net Income ($M)"
-            value={projData.netIncomeCurrentYear}
-            onChange={(v) => onChange({ netIncomeCurrentYear: v })}
-            prefix="$"
-            suffix="M"
-            tooltip="Net income in millions USD"
-            step={100}
-          />
-          <NumberInput
-            label="NI Growth Rate"
-            value={projData.netIncomeGrowthRate}
-            onChange={(v) => onChange({ netIncomeGrowthRate: v })}
-            suffix="%"
-            tooltip="Expected annual net income growth rate"
-            step={0.5}
-          />
-          <NumberInput
-            label="EPS (Current)"
-            value={projData.epsCurrentYear}
-            onChange={(v) => onChange({ epsCurrentYear: v })}
-            prefix="$"
-            tooltip="Earnings per share (current year)"
-            step={0.01}
-          />
-          <NumberInput
-            label="EPS Growth Rate"
-            value={projData.epsGrowthRate}
-            onChange={(v) => onChange({ epsGrowthRate: v })}
-            suffix="%"
-            tooltip="Expected annual EPS growth rate"
-            step={0.5}
-          />
-          <NumberInput
-            label="P/E Multiple"
-            value={projData.peMultiple}
-            onChange={(v) => onChange({ peMultiple: v })}
-            suffix="x"
-            tooltip="Price-to-Earnings multiple at exit"
-            step={1}
-            min={0}
-          />
-          <NumberInput
-            label="Shares Out. (M)"
-            value={projData.sharesOutstanding}
-            onChange={(v) => onChange({ sharesOutstanding: v })}
-            suffix="M"
-            tooltip="Shares outstanding in millions"
-            step={100}
-            min={1}
-          />
-        </div>
-      </div>
-
-      {/* FCF Section */}
-      <div className="rounded-lg p-3 bg-[oklch(1_0_0/3%)] border border-[oklch(1_0_0/6%)]">
-        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Free Cash Flow
-        </h4>
-        <div className="grid grid-cols-2 gap-3">
-          <NumberInput
-            label="FCF ($M)"
-            value={projData.fcfCurrentYear}
-            onChange={(v) => onChange({ fcfCurrentYear: v })}
-            prefix="$"
-            suffix="M"
-            tooltip="Free cash flow in millions USD"
-            step={100}
-          />
-          <NumberInput
-            label="FCF Growth Rate"
-            value={projData.fcfGrowthRate}
-            onChange={(v) => onChange({ fcfGrowthRate: v })}
-            suffix="%"
-            tooltip="Expected annual FCF growth rate"
-            step={0.5}
-          />
-          <NumberInput
-            label="FCF Multiple"
+            label="P/FCF Multiple"
             value={projData.fcfMultiple}
             onChange={(v) => onChange({ fcfMultiple: v })}
             suffix="x"
-            tooltip="Price-to-FCF multiple at exit"
+            tooltip="Price-to-FCF multiple at exit year"
             step={1}
             min={0}
           />
-          {/* Target price override for crypto/ETF */}
-          <NumberInput
-            label="Price Override"
-            value={projData.targetPriceOverride ?? 0}
-            onChange={(v) => onChange({ targetPriceOverride: v > 0 ? v : undefined })}
-            prefix="$"
-            tooltip="Manual target price override (for crypto/ETF). Set to 0 to use model."
-            step={1}
-            min={0}
-          />
+        </div>
+
+        {/* Derived target prices for each method */}
+        <div className="grid grid-cols-3 gap-2 mt-2">
+          <DerivedValue label="P/E Target" value={targetPricePE > 0 ? `$${targetPricePE.toFixed(0)}` : 'N/A'} color={cfg.color} />
+          <DerivedValue label="P/S Target" value={targetPricePS > 0 ? `$${targetPricePS.toFixed(0)}` : 'N/A'} color={cfg.color} />
+          <DerivedValue label="P/FCF Target" value={targetPriceFCF > 0 ? `$${targetPriceFCF.toFixed(0)}` : 'N/A'} color={cfg.color} />
+        </div>
+      </div>
+
+      {/* ── Price Override ─────────────────────────────────────────────────── */}
+      <div className="rounded-lg p-3 bg-[oklch(1_0_0/3%)] border border-[oklch(1_0_0/6%)]">
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+          Manual Price Override <span className="normal-case text-[10px] font-normal">(for crypto/ETF — leave 0 to use model)</span>
+        </h4>
+        <NumberInput
+          label=""
+          value={projData.targetPriceOverride ?? 0}
+          onChange={(v) => onChange({ targetPriceOverride: v > 0 ? v : undefined })}
+          prefix="$"
+          tooltip="Manual target price override. Set to 0 to use the model above."
+          step={1}
+          min={0}
+        />
+      </div>
+
+      {/* ── Summary ────────────────────────────────────────────────────────── */}
+      <div
+        className="rounded-lg p-3 border"
+        style={{ background: cfg.bg, borderColor: `${cfg.color}40` }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+              {cfg.label} Target ({years}yr)
+            </p>
+            <p className="font-mono text-xl font-bold text-foreground">
+              {primaryTarget > 0 ? `$${primaryTarget.toFixed(0)}` : 'N/A'}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">CAGR</p>
+            <p className="font-mono text-lg font-bold" style={{ color: cfg.color }}>
+              {cagr >= 0 ? '+' : ''}{cagr.toFixed(1)}%
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Multiple</p>
+            <p className="font-mono text-lg font-bold" style={{ color: cfg.color }}>
+              {currentData.currentPrice > 0 && primaryTarget > 0
+                ? `${(primaryTarget / currentData.currentPrice).toFixed(2)}x`
+                : 'N/A'}
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
+// ── Main Drawer Component ────────────────────────────────────────────────────
 export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: boolean }) {
   const selectedStockId = usePortfolioStore((s) => s.selectedStockId);
   const projectionDrawerOpen = usePortfolioStore((s) => s.projectionDrawerOpen);
@@ -379,8 +421,10 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
   const updateStockInLibrary = usePortfolioStore((s) => s.updateStockInLibrary);
   const portfolios = usePortfolioStore((s) => s.portfolios);
   const activePortfolioId = usePortfolioStore((s) => s.activePortfolioId);
+  const { refreshStock, refreshingTicker } = useStockRefresh();
 
   const stock = stockLibrary.find((s) => s.id === selectedStockId);
+  const refreshing = refreshingTicker === stock?.ticker;
   const activePortfolio = portfolios.find((p) => p.id === activePortfolioId);
   const portfolioStock = activePortfolio?.stocks.find((ps) => ps.stockId === selectedStockId);
   const years = activePortfolio?.projectionYears ?? 5;
@@ -404,7 +448,17 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
     });
   };
 
-  // Calculate target prices for summary
+  // Refresh live data from Yahoo Finance
+  const handleRefreshData = async () => {
+    const success = await refreshStock(stock.id);
+    if (success) {
+      toast.success(`${stock.ticker} data refreshed`);
+    } else {
+      toast.error(`Could not fetch live data for ${stock.ticker}. Update manually.`);
+    }
+  };
+
+  // Calculate target prices for summary cards
   const bearTarget = calcTargetPrice(proj.bear, proj, years);
   const baseTarget = calcTargetPrice(proj.base, proj, years);
   const bullTarget = calcTargetPrice(proj.bull, proj, years);
@@ -418,63 +472,78 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
     : 0;
 
   return (
-    <div className={mobileMode ? 'flex flex-col h-full bg-[oklch(0.14_0.04_255)]' : 'fixed inset-y-0 right-0 w-[480px] bg-[oklch(0.14_0.04_255)] border-l border-[oklch(1_0_0/8%)] shadow-2xl z-50 flex flex-col'}>
-      {/* Header */}
+    <div className={mobileMode
+      ? 'flex flex-col h-full bg-[oklch(0.14_0.04_255)]'
+      : 'fixed inset-y-0 right-0 w-[480px] bg-[oklch(0.14_0.04_255)] border-l border-[oklch(1_0_0/8%)] shadow-2xl z-50 flex flex-col'
+    }>
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between p-4 border-b border-[oklch(1_0_0/8%)]">
         <div>
           <div className="flex items-center gap-2">
             <span className="font-mono text-xl font-bold text-foreground">{stock.ticker}</span>
-            <span className="text-xs px-2 py-0.5 rounded bg-[oklch(1_0_0/8%)] text-muted-foreground">
-              {stock.industry}
-            </span>
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{stock.tag}</Badge>
           </div>
           <p className="text-sm text-muted-foreground">{stock.name}</p>
+          {proj.dataAsOf && (
+            <p className="text-[10px] text-muted-foreground/50 mt-0.5">Data as of {proj.dataAsOf}</p>
+          )}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-          onClick={() => setProjectionDrawerOpen(false)}
-        >
-          <X className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+            onClick={handleRefreshData}
+            disabled={refreshing}
+            title="Refresh live data"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+            onClick={() => setProjectionDrawerOpen(false)}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
-      {/* Current data & valuation method */}
+      {/* ── Live Financials Row ─────────────────────────────────────────────── */}
       <div className="px-4 py-3 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.15_0.04_255)]">
+        {/* Price + Valuation Method */}
         <div className="grid grid-cols-3 gap-3 mb-3">
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Current Price</p>
-            <div className="flex items-center gap-1">
-              <NumberInput
-                label=""
-                value={proj.currentPrice}
-                onChange={(v) => updateCurrentData({ currentPrice: v })}
-                prefix="$"
-                step={0.01}
-                min={0}
-              />
-            </div>
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Market Cap ($M)</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Current Price</p>
             <NumberInput
               label=""
-              value={proj.currentMarketCap}
-              onChange={(v) => updateCurrentData({ currentMarketCap: v })}
+              value={proj.currentPrice}
+              onChange={(v) => updateCurrentData({ currentPrice: v })}
               prefix="$"
-              suffix="M"
-              step={1000}
+              step={0.01}
               min={0}
             />
           </div>
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Valuation Method</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Shares Out (B)</p>
+            <NumberInput
+              label=""
+              value={proj.currentSharesB}
+              onChange={(v) => updateCurrentData({ currentSharesB: v })}
+              suffix="B"
+              step={0.01}
+              min={0.001}
+              tooltip="Shares outstanding in billions — used to derive EPS from Net Income"
+            />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Valuation Method</p>
             <Select
               value={proj.valuationMethod}
               onValueChange={(v) => updateCurrentData({ valuationMethod: v as any })}
             >
-              <SelectTrigger className="h-7 text-xs bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]">
+              <SelectTrigger className="h-8 text-xs bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[oklch(0.17_0.04_255)] border-[oklch(1_0_0/10%)]">
@@ -487,30 +556,73 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
           </div>
         </div>
 
-        {/* Current financials row */}
-        <div className="grid grid-cols-4 gap-2">
+        {/* Current financials — Revenue, Net Income, EPS, FCF */}
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          <NumberInput
+            label="Revenue TTM ($B)"
+            value={proj.currentRevenueB}
+            onChange={(v) => updateCurrentData({ currentRevenueB: v })}
+            prefix="$"
+            suffix="B"
+            step={0.1}
+            min={0}
+            tooltip="Trailing twelve months revenue in billions USD"
+          />
+          <NumberInput
+            label="Net Income TTM ($B)"
+            value={proj.currentNetIncomeB}
+            onChange={(v) => updateCurrentData({ currentNetIncomeB: v })}
+            prefix="$"
+            suffix="B"
+            step={0.01}
+            tooltip="Trailing twelve months net income in billions USD"
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <NumberInput
+            label="EPS TTM"
+            value={proj.currentEPS}
+            onChange={(v) => updateCurrentData({ currentEPS: v })}
+            prefix="$"
+            step={0.01}
+            tooltip="Trailing twelve months earnings per share"
+          />
+          <NumberInput
+            label="FCF TTM ($B)"
+            value={proj.currentFCFB}
+            onChange={(v) => updateCurrentData({ currentFCFB: v })}
+            prefix="$"
+            suffix="B"
+            step={0.01}
+            tooltip="Trailing twelve months free cash flow in billions USD"
+          />
+          <NumberInput
+            label="Net Margin %"
+            value={proj.currentNetMarginPct}
+            onChange={(v) => updateCurrentData({ currentNetMarginPct: v })}
+            suffix="%"
+            step={0.1}
+            tooltip="Current net profit margin (TTM)"
+          />
+        </div>
+
+        {/* Live ratios display */}
+        <div className="grid grid-cols-4 gap-1.5 mt-2">
           {[
-            { label: 'Revenue $M', key: 'currentRevenue' as const, step: 100, prefix: '$', suffix: 'M' },
-            { label: 'Net Inc $M', key: 'currentNetIncome' as const, step: 100, prefix: '$', suffix: 'M' },
-            { label: 'EPS $', key: 'currentEPS' as const, step: 0.01, prefix: '$', suffix: '' },
-            { label: 'FCF $M', key: 'currentFCF' as const, step: 100, prefix: '$', suffix: 'M' },
-          ].map(({ label, key, step, prefix, suffix }) => (
-            <div key={key}>
-              <NumberInput
-                label={label}
-                value={proj[key] as number}
-                onChange={(v) => updateCurrentData({ [key]: v })}
-                prefix={prefix}
-                suffix={suffix}
-                step={step}
-                min={0}
-              />
+            { label: 'P/E', value: proj.currentPE > 0 ? proj.currentPE.toFixed(1) + 'x' : 'N/A' },
+            { label: 'Fwd P/E', value: proj.currentPEForward > 0 ? proj.currentPEForward.toFixed(1) + 'x' : 'N/A' },
+            { label: 'P/S', value: proj.currentPS > 0 ? proj.currentPS.toFixed(1) + 'x' : 'N/A' },
+            { label: 'Mkt Cap', value: proj.currentMarketCapB > 0 ? `$${proj.currentMarketCapB >= 1000 ? (proj.currentMarketCapB/1000).toFixed(1)+'T' : proj.currentMarketCapB.toFixed(0)+'B'}` : 'N/A' },
+          ].map(({ label, value }) => (
+            <div key={label} className="rounded p-1.5 bg-[oklch(1_0_0/3%)] border border-[oklch(1_0_0/6%)] text-center">
+              <p className="text-[9px] text-muted-foreground">{label}</p>
+              <p className="font-mono text-[11px] font-semibold text-foreground">{value}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Scenario summary cards */}
+      {/* ── Scenario Summary Cards ──────────────────────────────────────────── */}
       <div className="px-4 py-3 border-b border-[oklch(1_0_0/8%)]">
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
           {years}yr Target Price & Return
@@ -529,14 +641,16 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
                 style={{ background: cfg.bg, border: `1px solid ${cfg.color}30` }}
               >
                 <p className="text-[10px] font-medium mb-1" style={{ color: cfg.color }}>{cfg.label}</p>
-                <p className="font-mono text-sm font-bold text-foreground">{formatCurrency(target)}</p>
+                <p className="font-mono text-sm font-bold text-foreground">
+                  {target > 0 ? formatCurrency(target) : 'N/A'}
+                </p>
                 <p className="font-mono text-xs mt-0.5" style={{ color: cfg.color }}>
-                  {formatMultiple(multiple)}
+                  {multiple > 0 ? formatMultiple(multiple) : '—'}
                 </p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">
-                  CAGR: {cagr.toFixed(1)}%
+                  CAGR: {cagr !== 0 ? cagr.toFixed(1) + '%' : '—'}
                 </p>
-                {investedAmount > 0 && (
+                {investedAmount > 0 && multiple > 0 && (
                   <p className="text-[10px] mt-1 font-medium" style={{ color: cfg.color }}>
                     {formatCurrency(futureVal, true)}
                   </p>
@@ -547,14 +661,20 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
         </div>
       </div>
 
-      {/* Mini growth chart */}
+      {/* ── Mini Growth Chart ───────────────────────────────────────────────── */}
       <div className="px-4 py-3 border-b border-[oklch(1_0_0/8%)]">
         <MiniGrowthChart proj={proj} years={years} />
       </div>
 
-      {/* Scenario tabs */}
+      {/* ── Scenario Tabs ───────────────────────────────────────────────────── */}
       <ScrollArea className="flex-1">
         <div className="p-4">
+          <div className="mb-3 p-2.5 rounded-lg bg-[oklch(0.75_0.12_75/8%)] border border-[oklch(0.75_0.12_75/20%)]">
+            <p className="text-[10px] text-[oklch(0.75_0.12_75)] font-medium">
+              <BarChart2 className="w-3 h-3 inline mr-1" />
+              Projection chain: Revenue Growth → Net Margin → Net Income → EPS → × P/E Multiple = Target Price
+            </p>
+          </div>
           <Tabs defaultValue="base">
             <TabsList className="w-full bg-[oklch(1_0_0/5%)] mb-4">
               {(['bear', 'base', 'bull'] as Scenario[]).map((s) => {
@@ -564,7 +684,6 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
                     key={s}
                     value={s}
                     className="flex-1 text-xs data-[state=active]:text-foreground"
-                    style={{ '--tw-ring-color': cfg.color } as any}
                   >
                     <span style={{ color: cfg.color }} className="mr-1">●</span>
                     {cfg.label}
@@ -577,8 +696,9 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
                 <ScenarioForm
                   scenario={s}
                   projData={proj[s]}
+                  currentData={proj}
                   onChange={(updates) => updateScenario(s, updates)}
-                  valuationMethod={proj.valuationMethod}
+                  years={years}
                 />
               </TabsContent>
             ))}

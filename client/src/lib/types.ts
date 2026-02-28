@@ -1,5 +1,7 @@
 // Portfolio Planner — Core Types
 // Design: Sophisticated Finance Dashboard (deep navy + gold)
+// Projection model: Revenue → Net Margin → Net Income → EPS → P/E → Target Price
+// (matches 1000x Stocks methodology)
 
 export type Industry =
   | 'Technology'
@@ -17,47 +19,61 @@ export type Industry =
   | 'ETF'
   | 'Other';
 
+/**
+ * Per-scenario projection inputs.
+ * The calculation chain is:
+ *   Future Revenue = currentRevenue × (1 + revenueGrowthRate/100)^N
+ *   Future Net Income = Future Revenue × (netMarginPct/100)
+ *   Future EPS = Future Net Income / sharesOutstanding (in same units)
+ *   Target Price (P/E) = Future EPS × peMultiple
+ *   Target Price (P/S) = (Future Revenue / sharesOutstanding) × psMultiple
+ *   Target Price (P/FCF) = (Future FCF / sharesOutstanding) × fcfMultiple
+ */
 export interface ScenarioProjection {
-  // Revenue projections
-  revenueCurrentYear: number; // in millions
-  revenueGrowthRate: number; // % per year
-  // Net income / earnings
-  netIncomeCurrentYear: number; // in millions
-  netIncomeGrowthRate: number; // % per year
-  // Valuation multiple
-  psMultiple: number; // Price-to-Sales
-  peMultiple: number; // Price-to-Earnings
-  // EPS
-  epsCurrentYear: number;
-  epsGrowthRate: number;
-  // Gross Margin
-  grossMargin: number; // %
-  // FCF
-  fcfCurrentYear: number; // in millions
-  fcfGrowthRate: number; // % per year
-  // FCF multiple
-  fcfMultiple: number;
-  // Shares outstanding (millions)
-  sharesOutstanding: number;
-  // Target price (derived or manual override)
-  targetPriceOverride?: number;
+  // ── Revenue inputs ──────────────────────────────────────────────────────
+  revenueGrowthRate: number;    // % per year (e.g. 20 = 20%)
+
+  // ── Profitability inputs ─────────────────────────────────────────────────
+  netMarginPct: number;         // Net margin at exit year (e.g. 15 = 15%)
+
+  // ── Valuation multiple inputs ────────────────────────────────────────────
+  peMultiple: number;           // Exit P/E multiple
+  psMultiple: number;           // Exit P/S multiple (alternative method)
+  fcfMultiple: number;          // Exit P/FCF multiple (alternative method)
+
+  // ── FCF inputs (optional alternative) ───────────────────────────────────
+  fcfMarginPct: number;         // FCF margin at exit year (e.g. 12 = 12%)
+
+  // ── Target price override ────────────────────────────────────────────────
+  targetPriceOverride?: number; // Manual override (for crypto/ETF)
 }
 
 export interface StockProjections {
   bear: ScenarioProjection;
   base: ScenarioProjection;
   bull: ScenarioProjection;
-  // Current data
-  currentPrice: number;
-  currentMarketCap: number; // in millions
-  currentRevenue: number; // in millions TTM
-  currentNetIncome: number; // in millions TTM
-  currentEPS: number;
-  currentPE: number;
-  currentPS: number;
-  currentFCF: number; // in millions TTM
-  // Valuation method preference
+
+  // ── Live / current data (fetched from Yahoo Finance) ─────────────────────
+  currentPrice: number;         // Current stock price
+  currentMarketCapB: number;    // Market cap in $B
+  currentRevenueB: number;      // Revenue TTM in $B
+  currentNetIncomeB: number;    // Net income TTM in $B
+  currentEPS: number;           // EPS TTM
+  currentEPSForward: number;    // Forward EPS (analyst estimate)
+  currentSharesB: number;       // Shares outstanding in billions
+  currentFCFB: number;          // Free cash flow TTM in $B
+  currentNetMarginPct: number;  // Net margin % TTM
+  currentGrossMarginPct: number;// Gross margin % TTM
+  currentRevenueGrowthPct: number; // Revenue growth YoY %
+  currentPE: number;            // Trailing P/E
+  currentPEForward: number;     // Forward P/E
+  currentPS: number;            // Price/Sales
+
+  // ── Valuation method preference ──────────────────────────────────────────
   valuationMethod: 'pe' | 'ps' | 'fcf' | 'price';
+
+  // ── Data freshness ───────────────────────────────────────────────────────
+  dataAsOf?: string;            // ISO date string when data was last fetched
 }
 
 export interface Stock {
@@ -65,6 +81,7 @@ export interface Stock {
   ticker: string;
   name: string;
   industry: Industry;
+  tag: string;                  // Short display tag (e.g. "Tech", "Semis", "Fintech")
   projections: StockProjections;
 }
 
@@ -105,32 +122,48 @@ export const INDUSTRY_COLORS: Record<Industry, string> = {
 };
 
 export const DEFAULT_SCENARIO: ScenarioProjection = {
-  revenueCurrentYear: 0,
   revenueGrowthRate: 10,
-  netIncomeCurrentYear: 0,
-  netIncomeGrowthRate: 10,
-  psMultiple: 10,
+  netMarginPct: 10,
   peMultiple: 20,
-  epsCurrentYear: 0,
-  epsGrowthRate: 10,
-  grossMargin: 50,
-  fcfCurrentYear: 0,
-  fcfGrowthRate: 10,
+  psMultiple: 5,
   fcfMultiple: 20,
-  sharesOutstanding: 1000,
+  fcfMarginPct: 8,
 };
 
 export const DEFAULT_PROJECTIONS: StockProjections = {
-  bear: { ...DEFAULT_SCENARIO, revenueGrowthRate: 5, netIncomeGrowthRate: 5, psMultiple: 8, peMultiple: 15, epsGrowthRate: 5, fcfGrowthRate: 5, fcfMultiple: 15 },
+  bear: {
+    ...DEFAULT_SCENARIO,
+    revenueGrowthRate: 5,
+    netMarginPct: 8,
+    peMultiple: 15,
+    psMultiple: 3,
+    fcfMultiple: 15,
+    fcfMarginPct: 5,
+  },
   base: { ...DEFAULT_SCENARIO },
-  bull: { ...DEFAULT_SCENARIO, revenueGrowthRate: 20, netIncomeGrowthRate: 20, psMultiple: 15, peMultiple: 30, epsGrowthRate: 20, fcfGrowthRate: 20, fcfMultiple: 30 },
+  bull: {
+    ...DEFAULT_SCENARIO,
+    revenueGrowthRate: 20,
+    netMarginPct: 15,
+    peMultiple: 30,
+    psMultiple: 8,
+    fcfMultiple: 30,
+    fcfMarginPct: 12,
+  },
   currentPrice: 100,
-  currentMarketCap: 100000,
-  currentRevenue: 10000,
-  currentNetIncome: 1000,
-  currentEPS: 5,
+  currentMarketCapB: 10,
+  currentRevenueB: 2,
+  currentNetIncomeB: 0.2,
+  currentEPS: 1,
+  currentEPSForward: 1.2,
+  currentSharesB: 0.5,
+  currentFCFB: 0.15,
+  currentNetMarginPct: 10,
+  currentGrossMarginPct: 40,
+  currentRevenueGrowthPct: 10,
   currentPE: 20,
-  currentPS: 10,
-  currentFCF: 800,
-  valuationMethod: 'ps', // Default to P/S — most relevant for growth stocks
+  currentPEForward: 18,
+  currentPS: 5,
+  valuationMethod: 'pe',
+  dataAsOf: '2026-02-28',
 };

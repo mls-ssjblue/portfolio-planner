@@ -1,10 +1,10 @@
 // Portfolio Planner — Add Custom Stock Dialog
 // Design: Sophisticated Finance Dashboard (deep navy + gold)
-// Allows adding any stock not in the S&P 500 catalog with manual entry
+// Allows adding any stock not in the catalog with manual entry
 
 import { useState } from 'react';
 import { nanoid } from 'nanoid';
-import { Plus, X, Info } from 'lucide-react';
+import { Plus, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -50,16 +50,14 @@ export default function AddCustomStockDialog() {
   const [name, setName] = useState('');
   const [industry, setIndustry] = useState<Industry>('Technology');
   const [currentPrice, setCurrentPrice] = useState('');
-  const [currentMarketCap, setCurrentMarketCap] = useState('');
-  const [currentRevenue, setCurrentRevenue] = useState('');
-  const [currentNetIncome, setCurrentNetIncome] = useState('');
-  const [currentEPS, setCurrentEPS] = useState('');
-  const [sharesOutstanding, setSharesOutstanding] = useState('');
+  const [currentRevenueB, setCurrentRevenueB] = useState('');
+  const [currentNetIncomeB, setCurrentNetIncomeB] = useState('');
+  const [currentSharesB, setCurrentSharesB] = useState('');
 
   const reset = () => {
     setTicker(''); setName(''); setIndustry('Technology');
-    setCurrentPrice(''); setCurrentMarketCap(''); setCurrentRevenue('');
-    setCurrentNetIncome(''); setCurrentEPS(''); setSharesOutstanding('');
+    setCurrentPrice(''); setCurrentRevenueB('');
+    setCurrentNetIncomeB(''); setCurrentSharesB('');
   };
 
   const handleSubmit = () => {
@@ -75,52 +73,50 @@ export default function AddCustomStockDialog() {
     }
 
     const price = parseFloat(currentPrice) || 100;
-    const marketCap = parseFloat(currentMarketCap) || price * 1000;
-    const revenue = parseFloat(currentRevenue) || 0;
-    const netIncome = parseFloat(currentNetIncome) || 0;
-    const eps = parseFloat(currentEPS) || 0;
-    const shares = parseFloat(sharesOutstanding) || 1000;
+    const revB = parseFloat(currentRevenueB) || 0;
+    const niB = parseFloat(currentNetIncomeB) || 0;
+    const sharesB = parseFloat(currentSharesB) || 0.5;
+    const netMarginPct = revB > 0 ? (niB / revB) * 100 : 10;
+    const eps = sharesB > 0 ? niB / sharesB : 0;
     const pe = eps > 0 ? price / eps : 20;
-    const ps = revenue > 0 ? (marketCap / revenue) : 10;
+    const ps = revB > 0 ? (price * sharesB) / revB : 5;
+    const fcfB = niB * 0.8;
 
     const stock = {
       id: nanoid(),
       ticker: t,
       name: n,
       industry,
+      tag: industry.split(' ')[0],
       projections: {
         ...DEFAULT_PROJECTIONS,
         currentPrice: price,
-        currentMarketCap: marketCap,
-        currentRevenue: revenue,
-        currentNetIncome: netIncome,
-        currentEPS: eps,
-        currentPE: pe,
-        currentPS: ps,
-        currentFCF: netIncome * 0.8,
+        currentMarketCapB: price * sharesB,
+        currentRevenueB: revB,
+        currentNetIncomeB: niB,
+        currentEPS: parseFloat(eps.toFixed(3)),
+        currentEPSForward: parseFloat(eps.toFixed(3)),
+        currentSharesB: sharesB,
+        currentFCFB: fcfB,
+        currentNetMarginPct: parseFloat(netMarginPct.toFixed(2)),
+        currentGrossMarginPct: 0,
+        currentRevenueGrowthPct: 10,
+        currentPE: parseFloat(pe.toFixed(2)),
+        currentPEForward: parseFloat(pe.toFixed(2)),
+        currentPS: parseFloat(ps.toFixed(2)),
+        valuationMethod: 'pe' as const,
+        dataAsOf: new Date().toISOString().split('T')[0],
         bear: {
           ...DEFAULT_PROJECTIONS.bear,
-          sharesOutstanding: shares,
-          epsCurrentYear: eps,
-          revenueCurrentYear: revenue,
-          netIncomeCurrentYear: netIncome,
-          fcfCurrentYear: netIncome * 0.8,
+          netMarginPct: Math.max(-20, netMarginPct * 0.7),
         },
         base: {
           ...DEFAULT_PROJECTIONS.base,
-          sharesOutstanding: shares,
-          epsCurrentYear: eps,
-          revenueCurrentYear: revenue,
-          netIncomeCurrentYear: netIncome,
-          fcfCurrentYear: netIncome * 0.8,
+          netMarginPct: netMarginPct,
         },
         bull: {
           ...DEFAULT_PROJECTIONS.bull,
-          sharesOutstanding: shares,
-          epsCurrentYear: eps,
-          revenueCurrentYear: revenue,
-          netIncomeCurrentYear: netIncome,
-          fcfCurrentYear: netIncome * 0.8,
+          netMarginPct: Math.min(80, netMarginPct * 1.4),
         },
       },
     };
@@ -148,129 +144,112 @@ export default function AddCustomStockDialog() {
             <Plus className="w-4 h-4 text-[oklch(0.75_0.12_75)]" />
             Add Custom Stock
           </DialogTitle>
-          <p className="text-xs text-muted-foreground">
-            Add any stock, ETF, or asset not in the S&P 500 catalog. You can fill in projections later.
-          </p>
         </DialogHeader>
 
-        <div className="space-y-4 pt-2">
-          {/* Basic Info */}
-          <div className="rounded-lg border border-[oklch(1_0_0/8%)] bg-[oklch(1_0_0/3%)] p-3 space-y-3">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Basic Information</p>
-
-            <div className="grid grid-cols-2 gap-3">
-              <FieldRow label="Ticker Symbol *" tooltip="e.g. AAPL, BHP.AX, 0700.HK">
-                <Input
-                  value={ticker}
-                  onChange={(e) => setTicker(e.target.value.toUpperCase())}
-                  placeholder="e.g. BHP"
-                  className="h-8 text-sm font-mono bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] focus:border-[oklch(0.75_0.12_75/50%)] uppercase"
-                  maxLength={12}
-                />
-              </FieldRow>
-              <FieldRow label="Industry / Sector">
-                <Select value={industry} onValueChange={(v) => setIndustry(v as Industry)}>
-                  <SelectTrigger className="h-8 text-xs bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] focus:border-[oklch(0.75_0.12_75/50%)]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[oklch(0.16_0.04_255)] border-[oklch(1_0_0/10%)]">
-                    {INDUSTRIES.map((ind) => (
-                      <SelectItem key={ind} value={ind} className="text-xs">{ind}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FieldRow>
-            </div>
-
+        <div className="space-y-4 mt-2">
+          <div className="grid grid-cols-2 gap-3">
+            <FieldRow label="Ticker Symbol *">
+              <Input
+                value={ticker}
+                onChange={(e) => setTicker(e.target.value.toUpperCase())}
+                placeholder="e.g. NVDA"
+                className="h-8 text-sm bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] uppercase"
+                maxLength={10}
+              />
+            </FieldRow>
             <FieldRow label="Company Name *">
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. BHP Group Limited"
-                className="h-8 text-sm bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] focus:border-[oklch(0.75_0.12_75/50%)]"
+                placeholder="e.g. NVIDIA Corp."
+                className="h-8 text-sm bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]"
               />
             </FieldRow>
           </div>
 
-          {/* Current Financials */}
-          <div className="rounded-lg border border-[oklch(1_0_0/8%)] bg-[oklch(1_0_0/3%)] p-3 space-y-3">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Current Financials <span className="normal-case font-normal">(optional — can be filled in later)</span></p>
+          <FieldRow label="Industry">
+            <Select value={industry} onValueChange={(v) => setIndustry(v as Industry)}>
+              <SelectTrigger className="h-8 text-sm bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-[oklch(0.17_0.04_255)] border-[oklch(1_0_0/10%)]">
+                {INDUSTRIES.map((ind) => (
+                  <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FieldRow>
 
-            <div className="grid grid-cols-2 gap-3">
-              <FieldRow label="Current Price ($)" tooltip="Current share price in USD">
-                <Input
-                  type="number"
-                  value={currentPrice}
-                  onChange={(e) => setCurrentPrice(e.target.value)}
-                  placeholder="e.g. 150"
-                  className="h-8 text-sm font-mono bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] focus:border-[oklch(0.75_0.12_75/50%)]"
-                  min={0}
-                />
-              </FieldRow>
-              <FieldRow label="Market Cap ($M)" tooltip="Market capitalization in millions USD">
-                <Input
-                  type="number"
-                  value={currentMarketCap}
-                  onChange={(e) => setCurrentMarketCap(e.target.value)}
-                  placeholder="e.g. 250000"
-                  className="h-8 text-sm font-mono bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] focus:border-[oklch(0.75_0.12_75/50%)]"
-                  min={0}
-                />
-              </FieldRow>
-              <FieldRow label="Revenue TTM ($M)" tooltip="Trailing twelve months revenue in millions">
-                <Input
-                  type="number"
-                  value={currentRevenue}
-                  onChange={(e) => setCurrentRevenue(e.target.value)}
-                  placeholder="e.g. 50000"
-                  className="h-8 text-sm font-mono bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] focus:border-[oklch(0.75_0.12_75/50%)]"
-                  min={0}
-                />
-              </FieldRow>
-              <FieldRow label="Net Income TTM ($M)" tooltip="Trailing twelve months net income in millions">
-                <Input
-                  type="number"
-                  value={currentNetIncome}
-                  onChange={(e) => setCurrentNetIncome(e.target.value)}
-                  placeholder="e.g. 5000"
-                  className="h-8 text-sm font-mono bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] focus:border-[oklch(0.75_0.12_75/50%)]"
-                />
-              </FieldRow>
-              <FieldRow label="EPS (TTM)" tooltip="Earnings per share, trailing twelve months">
-                <Input
-                  type="number"
-                  value={currentEPS}
-                  onChange={(e) => setCurrentEPS(e.target.value)}
-                  placeholder="e.g. 6.50"
-                  className="h-8 text-sm font-mono bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] focus:border-[oklch(0.75_0.12_75/50%)]"
-                />
-              </FieldRow>
-              <FieldRow label="Shares Outstanding (M)" tooltip="Total shares outstanding in millions">
-                <Input
-                  type="number"
-                  value={sharesOutstanding}
-                  onChange={(e) => setSharesOutstanding(e.target.value)}
-                  placeholder="e.g. 1500"
-                  className="h-8 text-sm font-mono bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] focus:border-[oklch(0.75_0.12_75/50%)]"
-                  min={0}
-                />
-              </FieldRow>
-            </div>
+          <div className="grid grid-cols-2 gap-3">
+            <FieldRow label="Current Price ($)" tooltip="Latest stock price in USD">
+              <Input
+                type="number"
+                value={currentPrice}
+                onChange={(e) => setCurrentPrice(e.target.value)}
+                placeholder="e.g. 150"
+                className="h-8 text-sm bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]"
+                min={0}
+                step={0.01}
+              />
+            </FieldRow>
+            <FieldRow label="Shares Outstanding (B)" tooltip="Shares outstanding in billions">
+              <Input
+                type="number"
+                value={currentSharesB}
+                onChange={(e) => setCurrentSharesB(e.target.value)}
+                placeholder="e.g. 2.5"
+                className="h-8 text-sm bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]"
+                min={0}
+                step={0.01}
+              />
+            </FieldRow>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <FieldRow label="Revenue TTM ($B)" tooltip="Trailing twelve months revenue in billions">
+              <Input
+                type="number"
+                value={currentRevenueB}
+                onChange={(e) => setCurrentRevenueB(e.target.value)}
+                placeholder="e.g. 5.2"
+                className="h-8 text-sm bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]"
+                min={0}
+                step={0.1}
+              />
+            </FieldRow>
+            <FieldRow label="Net Income TTM ($B)" tooltip="Trailing twelve months net income in billions">
+              <Input
+                type="number"
+                value={currentNetIncomeB}
+                onChange={(e) => setCurrentNetIncomeB(e.target.value)}
+                placeholder="e.g. 0.8"
+                className="h-8 text-sm bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]"
+                step={0.01}
+              />
+            </FieldRow>
+          </div>
+
+          <div className="p-3 rounded-lg bg-[oklch(0.75_0.12_75/8%)] border border-[oklch(0.75_0.12_75/20%)]">
+            <p className="text-[11px] text-[oklch(0.75_0.12_75)]">
+              EPS, P/E, P/S, and net margin will be auto-calculated from the values above.
+              You can fine-tune projections in the Projection Drawer after adding.
+            </p>
           </div>
 
           <div className="flex gap-2 pt-1">
             <Button
-              variant="ghost"
+              variant="outline"
+              size="sm"
+              className="flex-1 h-9 text-sm border-[oklch(1_0_0/10%)] text-muted-foreground"
               onClick={() => { reset(); setOpen(false); }}
-              className="flex-1 h-9 text-sm text-muted-foreground hover:text-foreground"
             >
               Cancel
             </Button>
             <Button
+              size="sm"
+              className="flex-1 h-9 text-sm bg-[oklch(0.75_0.12_75)] hover:bg-[oklch(0.70_0.12_75)] text-[oklch(0.1_0_0)]"
               onClick={handleSubmit}
-              className="flex-1 h-9 text-sm bg-[oklch(0.75_0.12_75)] text-[oklch(0.12_0.04_255)] hover:bg-[oklch(0.80_0.12_75)] font-semibold"
             >
-              <Plus className="w-4 h-4 mr-1.5" />
               Add to Library
             </Button>
           </div>

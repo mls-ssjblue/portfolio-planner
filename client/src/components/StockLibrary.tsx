@@ -114,6 +114,7 @@ function CatalogResultCard({ ticker, name, industry }: { ticker: string; name: s
       ticker,
       name,
       industry,
+      tag: industry.split(' ')[0],
       projections: { ...DEFAULT_PROJECTIONS },
     };
     addStockToLibrary(newStock);

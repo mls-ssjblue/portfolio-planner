@@ -302,19 +302,74 @@ export const usePortfolioStore = create<PortfolioStore>()(
         activePortfolioId: state.activePortfolioId,
       }),
       // Merge: always ensure new stocks from SAMPLE_STOCKS are present in the library
+      // Also migrate old schema fields to new schema (Revenue→Margin→EPS→P/E model)
       merge: (persistedState: unknown, currentState) => {
         const persisted = persistedState as Partial<PortfolioStore>;
-        const existingTickers = new Set(
-          (persisted.stockLibrary ?? []).map((s: Stock) => s.ticker)
-        );
+
+        // Migrate persisted stocks to new schema
+        const migratedPersistedStocks = (persisted.stockLibrary ?? []).map((s: any) => {
+          const p = s.projections ?? {};
+          // Detect old schema: has revenueCurrentYear but not currentRevenueB
+          const isOldSchema = p.bear?.revenueCurrentYear !== undefined && p.currentRevenueB === undefined;
+          if (!isOldSchema) return s;
+
+          // Find matching sample stock to get fresh data
+          const fresh = SAMPLE_STOCKS.find((fs) => fs.ticker === s.ticker);
+          if (fresh) return fresh; // Replace entirely with fresh data
+
+          // Manual migration for custom stocks
+          const revB = (p.currentRevenue ?? 0) / 1000;
+          const niB = (p.currentNetIncome ?? 0) / 1000;
+          const sharesB = (p.bear?.sharesOutstanding ?? 1000) / 1000;
+          const netMargin = revB > 0 ? (niB / revB) * 100 : 10;
+
+          const migrateScenario = (sc: any) => ({
+            revenueGrowthRate: sc?.revenueGrowthRate ?? 10,
+            netMarginPct: netMargin,
+            peMultiple: sc?.peMultiple ?? 20,
+            psMultiple: sc?.psMultiple ?? 5,
+            fcfMultiple: sc?.fcfMultiple ?? 20,
+            fcfMarginPct: netMargin * 0.8,
+          });
+
+          return {
+            ...s,
+            tag: s.tag ?? s.industry?.split(' ')[0] ?? 'Other',
+            projections: {
+              ...p,
+              currentRevenueB: revB,
+              currentNetIncomeB: niB,
+              currentSharesB: sharesB,
+              currentFCFB: (p.currentFCF ?? 0) / 1000,
+              currentMarketCapB: (p.currentMarketCap ?? 0) / 1000,
+              currentNetMarginPct: netMargin,
+              currentGrossMarginPct: p.bear?.grossMargin ?? 0,
+              currentRevenueGrowthPct: 10,
+              currentEPSForward: p.currentEPS ?? 0,
+              currentPEForward: p.currentPE ?? 20,
+              bear: migrateScenario(p.bear),
+              base: migrateScenario(p.base),
+              bull: migrateScenario(p.bull),
+            },
+          };
+        });
+
+        const existingTickers = new Set(migratedPersistedStocks.map((s: Stock) => s.ticker));
         const newStocks = SAMPLE_STOCKS.filter((s) => !existingTickers.has(s.ticker));
+        const finalLibrary = [...migratedPersistedStocks, ...newStocks];
+        const validStockIds = new Set(finalLibrary.map((s: Stock) => s.id));
+
+        // Clean up portfolios: remove stale stock references that no longer exist
+        const cleanedPortfolios = (persisted.portfolios ?? currentState.portfolios).map((p: any) => ({
+          ...p,
+          stocks: (p.stocks ?? []).filter((ps: any) => validStockIds.has(ps.stockId)),
+        }));
+
         return {
           ...currentState,
           ...persisted,
-          stockLibrary: [
-            ...(persisted.stockLibrary ?? []),
-            ...newStocks,
-          ],
+          stockLibrary: finalLibrary,
+          portfolios: cleanedPortfolios,
         };
       },
     }

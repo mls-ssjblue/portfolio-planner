@@ -410,7 +410,7 @@ export default function AnalyticsPanel() {
         </h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
         <Tabs defaultValue="allocation" className="h-full">
           <TabsList className="w-full bg-[oklch(1_0_0/4%)] rounded-none border-b border-[oklch(1_0_0/8%)] px-2 justify-start gap-0 h-10">
             <TabsTrigger value="allocation" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.75_0.12_75)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">

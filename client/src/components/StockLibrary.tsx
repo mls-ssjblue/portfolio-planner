@@ -51,16 +51,20 @@ function DraggableStockCard({ stock, isInPortfolio }: { stock: Stock; isInPortfo
     <div
       ref={setNodeRef}
       style={style}
-      {...listeners}
-      {...attributes}
       onClick={handleClick}
-      className={`group relative flex items-center gap-2.5 p-2.5 rounded-lg border transition-all duration-150 select-none cursor-grab active:cursor-grabbing
+      className={`group relative flex items-center gap-2.5 p-2.5 rounded-lg border transition-all duration-150 select-none touch-auto
         ${isInPortfolio
           ? 'border-[oklch(0.75_0.12_75/30%)] bg-[oklch(0.75_0.12_75/8%)]'
           : 'border-[oklch(1_0_0/6%)] bg-[oklch(1_0_0/3%)] hover:border-[oklch(1_0_0/12%)] hover:bg-[oklch(1_0_0/5%)]'
         }`}
     >
-      <div className="shrink-0 p-0.5 -m-0.5 rounded">
+      {/* Drag handle — listeners only here so touch scroll is not blocked on the rest of the card */}
+      <div
+        className="shrink-0 p-0.5 -m-0.5 rounded cursor-grab active:cursor-grabbing touch-none"
+        {...listeners}
+        {...attributes}
+        onClick={(e) => e.stopPropagation()}
+      >
         <GripVertical className="w-3 h-3 text-muted-foreground opacity-30 group-hover:opacity-70" />
       </div>
       <div className="flex-1 min-w-0">
@@ -240,12 +244,13 @@ export default function StockLibrary() {
 
       {/* Industry filter pills */}
       <div className="px-3 py-2 border-b border-[oklch(1_0_0/8%)]">
-        <ScrollArea className="w-full">
+        <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
           <div className="flex gap-1.5 pb-1">
             {industries.map((ind) => (
               <button
                 key={ind}
                 onClick={() => setIndustryFilter(ind as Industry | 'All')}
+                style={{ touchAction: 'manipulation' }}
                 className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-medium transition-colors
                   ${industryFilter === ind
                     ? 'bg-[oklch(0.75_0.12_75)] text-[oklch(0.12_0.04_255)]'
@@ -256,11 +261,14 @@ export default function StockLibrary() {
               </button>
             ))}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
       {/* Stock list */}
-      <ScrollArea className="flex-1 px-3 py-3">
+      <div
+        className="flex-1 px-3 py-3 overflow-y-auto"
+        style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+      >
         <div className="space-y-1.5">
           {/* Library stocks (with drag support) */}
           {filteredLibrary.length === 0 && !hasSearch && (
@@ -308,7 +316,7 @@ export default function StockLibrary() {
             Drag or click to add · Search S&P 500
           </p>
         )}
-      </ScrollArea>
+      </div>
     </div>
   );
 }

@@ -153,24 +153,30 @@ export default function Home() {
         </div>
 
         {/* ── Mobile Layout (<md): Single panel with bottom tabs ── */}
-        <div className="flex md:hidden flex-1 overflow-hidden relative">
+        <div className="flex md:hidden flex-1 overflow-hidden" style={{ minHeight: 0 }}>
           {/* Panel: Library */}
-          <div className={`absolute inset-0 transition-all duration-300 ${mobileTab === 'library' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-            <StockLibrary />
-          </div>
+          {mobileTab === 'library' && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <StockLibrary />
+            </div>
+          )}
           {/* Panel: Portfolio */}
-          <div className={`absolute inset-0 transition-all duration-300 ${mobileTab === 'portfolio' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-            <PortfolioManager />
-          </div>
+          {mobileTab === 'portfolio' && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <PortfolioManager />
+            </div>
+          )}
           {/* Panel: Analytics */}
-          <div className={`absolute inset-0 transition-all duration-300 ${mobileTab === 'analytics' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-            <AnalyticsPanel />
-          </div>
+          {mobileTab === 'analytics' && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <AnalyticsPanel />
+            </div>
+          )}
 
           {/* Mobile Projection Drawer overlay */}
           {projectionDrawerOpen && (
-            <div className="absolute inset-0 z-50 bg-[oklch(0.12_0.04_255/95%)] backdrop-blur-sm overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-[oklch(1_0_0/8%)]">
+            <div className="absolute inset-0 z-50 bg-[oklch(0.12_0.04_255/95%)] backdrop-blur-sm flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[oklch(1_0_0/8%)] shrink-0">
                 <h2 className="font-serif text-base font-semibold text-foreground">Stock Projections</h2>
                 <button
                   onClick={() => setProjectionDrawerOpen(false)}
@@ -179,7 +185,7 @@ export default function Home() {
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <div className="h-[calc(100%-52px)] overflow-hidden">
+              <div className="flex-1 overflow-hidden">
                 <ProjectionDrawer mobileMode />
               </div>
             </div>

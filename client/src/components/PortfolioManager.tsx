@@ -132,7 +132,7 @@ function SortableStockRow({
         <div
           {...listeners}
           {...attributes}
-          className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground shrink-0"
+          className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground shrink-0 touch-none"
         >
           <GripVertical className="w-4 h-4" />
         </div>
@@ -558,7 +558,7 @@ export default function PortfolioManager() {
             </div>
 
             {/* Stock list */}
-            <ScrollArea className="flex-1 px-4 py-3">
+            <div className="flex-1 px-4 py-3 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
               <SortableContext
                 items={activePortfolio.stocks.map((s) => s.stockId)}
                 strategy={verticalListSortingStrategy}
@@ -601,7 +601,7 @@ export default function PortfolioManager() {
                   Total allocation exceeds 100%. Please reduce some positions.
                 </div>
               )}
-            </ScrollArea>
+            </div>
           </div>
         )}
       </div>

@@ -131,6 +131,7 @@ export default function AddCustomStockDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button
+          style={{ touchAction: 'manipulation' }}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-[oklch(0.75_0.12_75)] hover:bg-[oklch(0.75_0.12_75/8%)] border border-[oklch(1_0_0/8%)] hover:border-[oklch(0.75_0.12_75/30%)] transition-all"
         >
           <Plus className="w-3.5 h-3.5" />

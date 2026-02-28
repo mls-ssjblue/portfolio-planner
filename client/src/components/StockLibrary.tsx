@@ -5,19 +5,16 @@
 import { useState, useMemo } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { Search, Plus, GripVertical, TrendingUp, X, BookOpen } from 'lucide-react';
+import { Search, TrendingUp, X, BookOpen, GripVertical, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePortfolioStore } from '@/lib/store';
 import type { Industry, Stock } from '@/lib/types';
 import { INDUSTRY_COLORS, DEFAULT_PROJECTIONS } from '@/lib/types';
 import { SP500_STOCKS } from '@/lib/sp500';
 import { nanoid } from 'nanoid';
 import { toast } from 'sonner';
+import AddCustomStockDialog from './AddCustomStockDialog';
 
 const INDUSTRIES: Industry[] = [
   'Technology', 'Healthcare', 'Financials', 'Consumer Discretionary',
@@ -161,89 +158,6 @@ function CatalogResultCard({ ticker, name, industry }: { ticker: string; name: s
   );
 }
 
-// ── Add Custom Stock Dialog ────────────────────────────────────────────────────
-function AddStockDialog() {
-  const addStockToLibrary = usePortfolioStore((s) => s.addStockToLibrary);
-  const [open, setOpen] = useState(false);
-  const [ticker, setTicker] = useState('');
-  const [name, setName] = useState('');
-  const [industry, setIndustry] = useState<Industry>('Technology');
-
-  const handleAdd = () => {
-    if (!ticker.trim() || !name.trim()) {
-      toast.error('Ticker and name are required');
-      return;
-    }
-    const newStock: Stock = {
-      id: nanoid(),
-      ticker: ticker.toUpperCase().trim(),
-      name: name.trim(),
-      industry,
-      projections: { ...DEFAULT_PROJECTIONS },
-    };
-    addStockToLibrary(newStock);
-    toast.success(`${newStock.ticker} added to library`);
-    setOpen(false);
-    setTicker('');
-    setName('');
-    setIndustry('Technology');
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-[oklch(0.75_0.12_75)]">
-          <Plus className="w-4 h-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="bg-[oklch(0.17_0.04_255)] border-[oklch(1_0_0/10%)] text-foreground max-w-sm">
-        <DialogHeader>
-          <DialogTitle className="font-serif text-lg">Add Custom Stock</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 pt-2">
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Ticker Symbol</Label>
-            <Input
-              value={ticker}
-              onChange={(e) => setTicker(e.target.value)}
-              placeholder="e.g. AAPL"
-              className="bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] font-mono uppercase"
-            />
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Company Name</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Apple Inc."
-              className="bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]"
-            />
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Industry</Label>
-            <Select value={industry} onValueChange={(v) => setIndustry(v as Industry)}>
-              <SelectTrigger className="bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-[oklch(0.17_0.04_255)] border-[oklch(1_0_0/10%)]">
-                {INDUSTRIES.map((ind) => (
-                  <SelectItem key={ind} value={ind}>{ind}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button
-            onClick={handleAdd}
-            className="w-full bg-[oklch(0.75_0.12_75)] text-[oklch(0.12_0.04_255)] hover:bg-[oklch(0.80_0.12_75)] font-semibold"
-          >
-            Add to Library
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 // ── Main StockLibrary Component ───────────────────────────────────────────────
 export default function StockLibrary() {
   const stockLibrary = usePortfolioStore((s) => s.stockLibrary);
@@ -297,7 +211,7 @@ export default function StockLibrary() {
               {stockLibrary.length}
             </span>
           </div>
-          <AddStockDialog />
+          <AddCustomStockDialog />
         </div>
         {/* Search */}
         <div className="relative">

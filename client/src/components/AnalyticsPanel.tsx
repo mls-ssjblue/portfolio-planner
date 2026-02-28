@@ -8,7 +8,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
   LineChart, Line, Area, AreaChart, ReferenceLine,
 } from 'recharts';
-import { TrendingUp, TrendingDown, Minus, BarChart3, PieChart as PieIcon, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, BarChart3, PieChart as PieIcon, Activity, GitCompare } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePortfolioStore } from '@/lib/store';
 import { INDUSTRY_COLORS } from '@/lib/types';
@@ -20,6 +20,7 @@ import {
   calcTargetPrice,
   calcCAGR,
 } from '@/lib/projections';
+import PortfolioComparison from './PortfolioComparison';
 
 const SCENARIO_COLORS = {
   bear: '#dc4040',
@@ -428,6 +429,10 @@ export default function AnalyticsPanel() {
               <Activity className="w-3 h-3 sm:mr-1.5" />
               <span className="hidden sm:inline">Detail</span>
             </TabsTrigger>
+            <TabsTrigger value="compare" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.75_0.12_75)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
+              <GitCompare className="w-3 h-3 sm:mr-1.5" />
+              <span className="hidden sm:inline">Compare</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="allocation" className="p-4 mt-0">
@@ -444,6 +449,9 @@ export default function AnalyticsPanel() {
 
           <TabsContent value="detail" className="p-4 mt-0">
             <StockDetailTable />
+          </TabsContent>
+          <TabsContent value="compare" className="mt-0 h-full">
+            <PortfolioComparison />
           </TabsContent>
         </Tabs>
       </div>

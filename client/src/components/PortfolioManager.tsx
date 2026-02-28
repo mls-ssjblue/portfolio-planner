@@ -12,7 +12,7 @@ import { useDroppable } from '@dnd-kit/core';
 import {
   Plus, Trash2, Copy, Edit2, Check, X, GripVertical,
   DollarSign, Percent, ChevronDown, ChevronUp, Settings2,
-  Wallet, TrendingUp, BarChart3, Clock,
+  Wallet, TrendingUp, BarChart3, Clock, Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,7 @@ import { usePortfolioStore } from '@/lib/store';
 import type { PortfolioStock } from '@/lib/types';
 import { INDUSTRY_COLORS } from '@/lib/types';
 import { formatCurrency } from '@/lib/projections';
+import { exportPortfolioCSV } from '@/lib/exportUtils';
 import { toast } from 'sonner';
 
 // ── Drop Zone ──────────────────────────────────────────────────────────────
@@ -424,6 +425,22 @@ export default function PortfolioManager() {
             <Plus className="w-3.5 h-3.5" />
             New
           </button>
+          <div className="ml-auto shrink-0">
+            {activePortfolio && (
+              <button
+                onClick={() => {
+                  const stockLibrary = usePortfolioStore.getState().stockLibrary;
+                  exportPortfolioCSV(activePortfolio, stockLibrary);
+                  toast.success(`Exported ${activePortfolio.name} to CSV`);
+                }}
+                className="flex items-center gap-1 px-2 py-1.5 text-xs text-muted-foreground hover:text-[oklch(0.75_0.12_75)] shrink-0"
+                title="Export to CSV"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">CSV</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {activePortfolio && (

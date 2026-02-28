@@ -1,6 +1,7 @@
 // Portfolio Planner — Main Dashboard
 // Design: Sophisticated Finance Dashboard (deep navy + gold)
-// Layout: Left sidebar (stock library) | Center (portfolio manager) | Right (analytics)
+// Desktop: Left sidebar (stock library) | Center (portfolio manager) | Right (analytics)
+// Mobile: Full-screen panels with bottom tab navigation
 // DndContext is at the top level so StockLibrary (draggable) and PortfolioManager (droppable) share the same context
 
 import { useEffect, useState } from 'react';
@@ -21,19 +22,23 @@ import PortfolioManager from '@/components/PortfolioManager';
 import AnalyticsPanel from '@/components/AnalyticsPanel';
 import ProjectionDrawer from '@/components/ProjectionDrawer';
 import { usePortfolioStore } from '@/lib/store';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, BookOpen, BarChart3, PieChart, X } from 'lucide-react';
 import { toast } from 'sonner';
+
+type MobileTab = 'library' | 'portfolio' | 'analytics';
 
 export default function Home() {
   const portfolios = usePortfolioStore((s) => s.portfolios);
   const createPortfolio = usePortfolioStore((s) => s.createPortfolio);
   const projectionDrawerOpen = usePortfolioStore((s) => s.projectionDrawerOpen);
+  const setProjectionDrawerOpen = usePortfolioStore((s) => s.setProjectionDrawerOpen);
   const addStockToPortfolio = usePortfolioStore((s) => s.addStockToPortfolio);
   const reorderPortfolioStocks = usePortfolioStore((s) => s.reorderPortfolioStocks);
   const activePortfolioId = usePortfolioStore((s) => s.activePortfolioId);
 
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragTicker, setActiveDragTicker] = useState<string>('');
+  const [mobileTab, setMobileTab] = useState<MobileTab>('portfolio');
   const stockLibrary = usePortfolioStore((s) => s.stockLibrary);
 
   // Create default portfolio on first load
@@ -44,18 +49,12 @@ export default function Home() {
   }, []);
 
   // Sensors: require 8px movement before drag starts (prevents accidental drags on click)
-  // Also add delay-based activation so scroll areas still work
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      activationConstraint: { distance: 8 },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 8,
-      },
+      activationConstraint: { delay: 200, tolerance: 8 },
     })
   );
 
@@ -66,8 +65,9 @@ export default function Home() {
     if (data?.type === 'library-stock') {
       const stock = stockLibrary.find((s) => s.id === data.stockId);
       setActiveDragTicker(stock?.ticker ?? '');
+      // On mobile, auto-switch to portfolio tab when dragging starts
+      setMobileTab('portfolio');
     } else {
-      // Sortable row — id is the stockId
       const stock = stockLibrary.find((s) => s.id === id);
       setActiveDragTicker(stock?.ticker ?? '');
     }
@@ -84,7 +84,6 @@ export default function Home() {
 
     // ── Drop from library into portfolio ──────────────────────────────────
     if (activeData?.type === 'library-stock') {
-      // Accept drop on the drop zone OR on any existing stock row OR on the portfolio area
       const overId = String(over.id);
       if (
         overId === 'portfolio-drop-zone' ||
@@ -119,48 +118,99 @@ export default function Home() {
         }}
       >
         {/* Top Navigation Bar */}
-        <header className="h-14 flex items-center justify-between px-4 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.13_0.04_255/95%)] backdrop-blur-sm shrink-0 z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[oklch(0.75_0.12_75)] flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-[oklch(0.12_0.04_255)]" />
+        <header className="h-12 md:h-14 flex items-center justify-between px-3 md:px-4 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.13_0.04_255/95%)] backdrop-blur-sm shrink-0 z-10">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-[oklch(0.75_0.12_75)] flex items-center justify-center shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4 text-[oklch(0.12_0.04_255)]" />
             </div>
             <div>
-              <h1 className="font-serif text-base font-semibold text-foreground leading-tight">Portfolio Planner</h1>
-              <p className="text-[10px] text-muted-foreground leading-tight">Scenario-based investment planning</p>
+              <h1 className="font-serif text-sm md:text-base font-semibold text-foreground leading-tight">Portfolio Planner</h1>
+              <p className="hidden sm:block text-[10px] text-muted-foreground leading-tight">Scenario-based investment planning</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <QuickStats />
           </div>
         </header>
 
-        {/* Main layout */}
-        <div className={`flex-1 overflow-hidden transition-all duration-300 ${projectionDrawerOpen ? 'mr-[480px]' : ''}`}>
+        {/* ── Desktop Layout (md+): Three resizable panels ── */}
+        <div className={`hidden md:flex flex-1 overflow-hidden transition-all duration-300 ${projectionDrawerOpen ? 'mr-[480px]' : ''}`}>
           <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Stock Library Sidebar */}
             <ResizablePanel defaultSize={18} minSize={14} maxSize={28}>
               <StockLibrary />
             </ResizablePanel>
-
             <ResizableHandle className="w-px bg-[oklch(1_0_0/8%)] hover:bg-[oklch(0.75_0.12_75/40%)] transition-colors" />
-
-            {/* Portfolio Manager — no longer owns DndContext */}
             <ResizablePanel defaultSize={45} minSize={30}>
               <PortfolioManager />
             </ResizablePanel>
-
             <ResizableHandle className="w-px bg-[oklch(1_0_0/8%)] hover:bg-[oklch(0.75_0.12_75/40%)] transition-colors" />
-
-            {/* Analytics Panel */}
             <ResizablePanel defaultSize={37} minSize={25}>
               <AnalyticsPanel />
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>
 
-        {/* Projection Drawer (slides in from right) */}
-        <ProjectionDrawer />
+        {/* ── Mobile Layout (<md): Single panel with bottom tabs ── */}
+        <div className="flex md:hidden flex-1 overflow-hidden relative">
+          {/* Panel: Library */}
+          <div className={`absolute inset-0 transition-all duration-300 ${mobileTab === 'library' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            <StockLibrary />
+          </div>
+          {/* Panel: Portfolio */}
+          <div className={`absolute inset-0 transition-all duration-300 ${mobileTab === 'portfolio' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            <PortfolioManager />
+          </div>
+          {/* Panel: Analytics */}
+          <div className={`absolute inset-0 transition-all duration-300 ${mobileTab === 'analytics' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            <AnalyticsPanel />
+          </div>
+
+          {/* Mobile Projection Drawer overlay */}
+          {projectionDrawerOpen && (
+            <div className="absolute inset-0 z-50 bg-[oklch(0.12_0.04_255/95%)] backdrop-blur-sm overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[oklch(1_0_0/8%)]">
+                <h2 className="font-serif text-base font-semibold text-foreground">Stock Projections</h2>
+                <button
+                  onClick={() => setProjectionDrawerOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-[oklch(1_0_0/8%)] text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="h-[calc(100%-52px)] overflow-hidden">
+                <ProjectionDrawer mobileMode />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Desktop Projection Drawer (slides in from right) ── */}
+        <div className="hidden md:block">
+          <ProjectionDrawer />
+        </div>
+
+        {/* ── Mobile Bottom Navigation ── */}
+        <nav className="flex md:hidden shrink-0 border-t border-[oklch(1_0_0/8%)] bg-[oklch(0.13_0.04_255/98%)] backdrop-blur-sm">
+          <MobileTabButton
+            label="Library"
+            icon={<BookOpen className="w-5 h-5" />}
+            active={mobileTab === 'library'}
+            onClick={() => setMobileTab('library')}
+          />
+          <MobileTabButton
+            label="Portfolio"
+            icon={<BarChart3 className="w-5 h-5" />}
+            active={mobileTab === 'portfolio'}
+            onClick={() => setMobileTab('portfolio')}
+          />
+          <MobileTabButton
+            label="Analytics"
+            icon={<PieChart className="w-5 h-5" />}
+            active={mobileTab === 'analytics'}
+            onClick={() => setMobileTab('analytics')}
+          />
+        </nav>
       </div>
 
       {/* Drag Overlay — shown while dragging */}
@@ -172,6 +222,30 @@ export default function Home() {
         )}
       </DragOverlay>
     </DndContext>
+  );
+}
+
+function MobileTabButton({ label, icon, active, onClick }: {
+  label: string;
+  icon: React.ReactNode;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-2.5 transition-colors
+        ${active
+          ? 'text-[oklch(0.75_0.12_75)]'
+          : 'text-muted-foreground hover:text-foreground'
+        }`}
+    >
+      {icon}
+      <span className="text-[10px] font-medium">{label}</span>
+      {active && (
+        <div className="absolute bottom-0 w-8 h-0.5 bg-[oklch(0.75_0.12_75)] rounded-t-full" />
+      )}
+    </button>
   );
 }
 
@@ -193,25 +267,25 @@ function QuickStats() {
   };
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2 md:gap-4">
       <div className="text-center">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Capital</p>
-        <p className="font-mono text-sm font-semibold text-[oklch(0.75_0.12_75)]">{formatK(capital)}</p>
+        <p className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider">Capital</p>
+        <p className="font-mono text-xs md:text-sm font-semibold text-[oklch(0.75_0.12_75)]">{formatK(capital)}</p>
       </div>
-      <div className="w-px h-8 bg-[oklch(1_0_0/8%)]" />
+      <div className="w-px h-6 md:h-8 bg-[oklch(1_0_0/8%)]" />
       <div className="text-center">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Positions</p>
-        <p className="font-mono text-sm font-semibold text-foreground">{stockCount}</p>
+        <p className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider">Positions</p>
+        <p className="font-mono text-xs md:text-sm font-semibold text-foreground">{stockCount}</p>
       </div>
-      <div className="w-px h-8 bg-[oklch(1_0_0/8%)]" />
-      <div className="text-center">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Portfolios</p>
-        <p className="font-mono text-sm font-semibold text-foreground">{portfolios.length}</p>
+      <div className="hidden sm:block w-px h-6 md:h-8 bg-[oklch(1_0_0/8%)]" />
+      <div className="hidden sm:block text-center">
+        <p className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider">Portfolios</p>
+        <p className="font-mono text-xs md:text-sm font-semibold text-foreground">{portfolios.length}</p>
       </div>
-      <div className="w-px h-8 bg-[oklch(1_0_0/8%)]" />
-      <div className="text-center">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Horizon</p>
-        <p className="font-mono text-sm font-semibold text-foreground">{activePortfolio.projectionYears}yr</p>
+      <div className="hidden sm:block w-px h-6 md:h-8 bg-[oklch(1_0_0/8%)]" />
+      <div className="hidden sm:block text-center">
+        <p className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider">Horizon</p>
+        <p className="font-mono text-xs md:text-sm font-semibold text-foreground">{activePortfolio.projectionYears}yr</p>
       </div>
     </div>
   );

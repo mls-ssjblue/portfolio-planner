@@ -344,7 +344,7 @@ function ScenarioForm({
   );
 }
 
-export default function ProjectionDrawer() {
+export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: boolean }) {
   const selectedStockId = usePortfolioStore((s) => s.selectedStockId);
   const projectionDrawerOpen = usePortfolioStore((s) => s.projectionDrawerOpen);
   const setProjectionDrawerOpen = usePortfolioStore((s) => s.setProjectionDrawerOpen);
@@ -391,7 +391,7 @@ export default function ProjectionDrawer() {
     : 0;
 
   return (
-    <div className="fixed inset-y-0 right-0 w-[480px] bg-[oklch(0.14_0.04_255)] border-l border-[oklch(1_0_0/8%)] shadow-2xl z-50 flex flex-col">
+    <div className={mobileMode ? 'flex flex-col h-full bg-[oklch(0.14_0.04_255)]' : 'fixed inset-y-0 right-0 w-[480px] bg-[oklch(0.14_0.04_255)] border-l border-[oklch(1_0_0/8%)] shadow-2xl z-50 flex flex-col'}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-[oklch(1_0_0/8%)]">
         <div>

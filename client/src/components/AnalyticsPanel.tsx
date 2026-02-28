@@ -75,7 +75,7 @@ function AllocationDonut() {
   };
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row items-center gap-4">
       <div className="w-44 h-44 shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -184,7 +184,7 @@ function ScenarioComparison() {
   return (
     <div className="space-y-4">
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {summaryCards.map((card) => (
           <div
             key={card.label}
@@ -333,7 +333,7 @@ function StockDetailTable() {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-xs">
+      <table className="min-w-full text-xs">
         <thead>
           <tr className="border-b border-[oklch(1_0_0/8%)]">
             <th className="text-left py-2 px-2 text-muted-foreground font-medium uppercase tracking-wider text-[10px]">Stock</th>
@@ -411,22 +411,22 @@ export default function AnalyticsPanel() {
 
       <div className="flex-1 overflow-y-auto">
         <Tabs defaultValue="allocation" className="h-full">
-          <TabsList className="w-full bg-[oklch(1_0_0/4%)] rounded-none border-b border-[oklch(1_0_0/8%)] px-4 justify-start gap-0 h-10">
-            <TabsTrigger value="allocation" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.75_0.12_75)] data-[state=active]:bg-transparent px-3 h-10">
-              <PieIcon className="w-3 h-3 mr-1.5" />
-              Allocation
+          <TabsList className="w-full bg-[oklch(1_0_0/4%)] rounded-none border-b border-[oklch(1_0_0/8%)] px-2 justify-start gap-0 h-10">
+            <TabsTrigger value="allocation" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.75_0.12_75)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
+              <PieIcon className="w-3 h-3 sm:mr-1.5" />
+              <span className="hidden sm:inline">Allocation</span>
             </TabsTrigger>
-            <TabsTrigger value="scenarios" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.75_0.12_75)] data-[state=active]:bg-transparent px-3 h-10">
-              <BarChart3 className="w-3 h-3 mr-1.5" />
-              Scenarios
+            <TabsTrigger value="scenarios" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.75_0.12_75)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
+              <BarChart3 className="w-3 h-3 sm:mr-1.5" />
+              <span className="hidden sm:inline">Scenarios</span>
             </TabsTrigger>
-            <TabsTrigger value="growth" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.75_0.12_75)] data-[state=active]:bg-transparent px-3 h-10">
-              <TrendingUp className="w-3 h-3 mr-1.5" />
-              Growth
+            <TabsTrigger value="growth" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.75_0.12_75)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
+              <TrendingUp className="w-3 h-3 sm:mr-1.5" />
+              <span className="hidden sm:inline">Growth</span>
             </TabsTrigger>
-            <TabsTrigger value="detail" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.75_0.12_75)] data-[state=active]:bg-transparent px-3 h-10">
-              <Activity className="w-3 h-3 mr-1.5" />
-              Detail
+            <TabsTrigger value="detail" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.75_0.12_75)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
+              <Activity className="w-3 h-3 sm:mr-1.5" />
+              <span className="hidden sm:inline">Detail</span>
             </TabsTrigger>
           </TabsList>
 

@@ -198,7 +198,7 @@ function SortableStockRow({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -430,7 +430,7 @@ export default function PortfolioManager() {
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Capital & Controls bar */}
             <div className="px-4 py-3 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.15_0.04_255)]">
-              <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 sm:flex-wrap">
                 {/* Total Capital */}
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-[oklch(0.75_0.12_75)] shrink-0" />
@@ -457,7 +457,7 @@ export default function PortfolioManager() {
                 </div>
 
                 {/* Capital slider */}
-                <div className="flex-1 min-w-40">
+                <div className="flex-1 min-w-0 sm:min-w-40">
                   <Slider
                     value={[Math.log10(activePortfolio.totalCapital)]}
                     onValueChange={(v) => setTotalCapital(Math.round(Math.pow(10, v[0])))}

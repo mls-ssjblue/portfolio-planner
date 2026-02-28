@@ -3,21 +3,12 @@
 
 import { useState } from 'react';
 import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
-} from '@dnd-kit/core';
-import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
-  arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useDroppable } from '@dnd-kit/core';
 import {
   Plus, Trash2, Copy, Edit2, Check, X, GripVertical,
   DollarSign, Percent, ChevronDown, ChevronUp, Settings2,
@@ -34,7 +25,6 @@ import type { PortfolioStock } from '@/lib/types';
 import { INDUSTRY_COLORS } from '@/lib/types';
 import { formatCurrency } from '@/lib/projections';
 import { toast } from 'sonner';
-import { useDroppable } from '@dnd-kit/core';
 
 // ── Drop Zone ──────────────────────────────────────────────────────────────
 function PortfolioDropZone({ isEmpty }: { isEmpty: boolean }) {
@@ -374,53 +364,17 @@ function PortfolioTab({ portfolioId, isActive }: { portfolioId: string; isActive
 export default function PortfolioManager() {
   const portfolios = usePortfolioStore((s) => s.portfolios);
   const activePortfolioId = usePortfolioStore((s) => s.activePortfolioId);
-  const stockLibrary = usePortfolioStore((s) => s.stockLibrary);
   const createPortfolio = usePortfolioStore((s) => s.createPortfolio);
   const setTotalCapital = usePortfolioStore((s) => s.setTotalCapital);
   const setAllocationMode = usePortfolioStore((s) => s.setAllocationMode);
   const setProjectionYears = usePortfolioStore((s) => s.setProjectionYears);
-  const addStockToPortfolio = usePortfolioStore((s) => s.addStockToPortfolio);
   const removeStockFromPortfolio = usePortfolioStore((s) => s.removeStockFromPortfolio);
-  const reorderPortfolioStocks = usePortfolioStore((s) => s.reorderPortfolioStocks);
   const normalizeAllocations = usePortfolioStore((s) => s.normalizeAllocations);
 
   const [capitalInput, setCapitalInput] = useState('');
   const [capitalEditing, setCapitalEditing] = useState(false);
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
   const activePortfolio = portfolios.find((p) => p.id === activePortfolioId);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
-  );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveDragId(String(event.active.id));
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveDragId(null);
-    const { active, over } = event;
-    if (!over || !activePortfolio) return;
-
-    const activeData = event.active.data.current;
-
-    // Drop from library
-    if (activeData?.type === 'library-stock') {
-      addStockToPortfolio(activeData.stockId);
-      toast.success('Stock added to portfolio');
-      return;
-    }
-
-    // Reorder within portfolio
-    if (active.id !== over.id) {
-      const oldIndex = activePortfolio.stocks.findIndex((s) => s.stockId === active.id);
-      const newIndex = activePortfolio.stocks.findIndex((s) => s.stockId === over.id);
-      if (oldIndex !== -1 && newIndex !== -1) {
-        reorderPortfolioStocks(arrayMove(activePortfolio.stocks, oldIndex, newIndex));
-      }
-    }
-  };
 
   const handleCapitalChange = (raw: string) => {
     const num = parseFloat(raw.replace(/[^0-9.]/g, ''));
@@ -457,8 +411,7 @@ export default function PortfolioManager() {
   }
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full">
         {/* Portfolio tabs */}
         <div className="flex items-center gap-0 px-4 pt-3 border-b border-[oklch(1_0_0/8%)] overflow-x-auto">
           {portfolios.map((p) => (
@@ -635,20 +588,11 @@ export default function PortfolioManager() {
           </div>
         )}
       </div>
-
-      <DragOverlay>
-        {activeDragId && (
-          <div className="px-3 py-2 rounded-lg bg-[oklch(0.17_0.04_255)] border border-[oklch(0.75_0.12_75/50%)] shadow-2xl text-sm font-mono font-semibold text-foreground opacity-90">
-            Moving...
-          </div>
-        )}
-      </DragOverlay>
-    </DndContext>
   );
 }
 
 function DroppableBottom() {
-  const { isOver, setNodeRef } = useDroppable({ id: 'portfolio-drop-zone' });
+  const { isOver, setNodeRef } = useDroppable({ id: 'portfolio-drop-bottom' });
   return (
     <div
       ref={setNodeRef}

@@ -267,12 +267,28 @@ export const usePortfolioStore = create<PortfolioStore>()(
       setProjectionDrawerOpen: (open) => set({ projectionDrawerOpen: open }),
     }),
     {
-      name: 'portfolio-planner-v1',
+      name: 'portfolio-planner-v2',
       partialize: (state) => ({
         stockLibrary: state.stockLibrary,
         portfolios: state.portfolios,
         activePortfolioId: state.activePortfolioId,
       }),
+      // Merge: always ensure new stocks from SAMPLE_STOCKS are present in the library
+      merge: (persistedState: unknown, currentState) => {
+        const persisted = persistedState as Partial<PortfolioStore>;
+        const existingTickers = new Set(
+          (persisted.stockLibrary ?? []).map((s: Stock) => s.ticker)
+        );
+        const newStocks = SAMPLE_STOCKS.filter((s) => !existingTickers.has(s.ticker));
+        return {
+          ...currentState,
+          ...persisted,
+          stockLibrary: [
+            ...(persisted.stockLibrary ?? []),
+            ...newStocks,
+          ],
+        };
+      },
     }
   )
 );

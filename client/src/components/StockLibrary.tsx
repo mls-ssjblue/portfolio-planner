@@ -52,23 +52,21 @@ function DraggableStockCard({ stock, isInPortfolio }: { stock: Stock; isInPortfo
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative flex items-center gap-2.5 p-2.5 rounded-lg border transition-all duration-150 select-none
+      {...listeners}
+      {...attributes}
+      onClick={handleClick}
+      className={`group relative flex items-center gap-2.5 p-2.5 rounded-lg border transition-all duration-150 select-none cursor-grab active:cursor-grabbing
         ${isInPortfolio
           ? 'border-[oklch(0.75_0.12_75/30%)] bg-[oklch(0.75_0.12_75/8%)]'
           : 'border-[oklch(1_0_0/6%)] bg-[oklch(1_0_0/3%)] hover:border-[oklch(1_0_0/12%)] hover:bg-[oklch(1_0_0/5%)]'
         }`}
     >
-      {/* Drag handle - only this area initiates drag */}
-      <div
-        {...listeners}
-        {...attributes}
-        className="cursor-grab active:cursor-grabbing shrink-0 p-0.5 -m-0.5 rounded"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <GripVertical className="w-3 h-3 text-muted-foreground opacity-40 group-hover:opacity-80" />
+      {/* Grip icon for visual affordance */}
+      <div className="shrink-0 p-0.5 -m-0.5 rounded">
+        <GripVertical className="w-3 h-3 text-muted-foreground opacity-30 group-hover:opacity-70" />
       </div>
-      {/* Clickable area */}
-      <div className="flex-1 min-w-0 cursor-pointer" onClick={handleClick}>
+      {/* Stock info */}
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <span className="font-mono text-xs font-semibold text-foreground">{stock.ticker}</span>
           {isInPortfolio && (
@@ -78,9 +76,8 @@ function DraggableStockCard({ stock, isInPortfolio }: { stock: Stock; isInPortfo
         <p className="text-[10px] text-muted-foreground truncate leading-tight mt-0.5">{stock.name}</p>
       </div>
       <div
-        className="shrink-0 px-1.5 py-0.5 rounded text-[9px] font-medium cursor-pointer"
+        className="shrink-0 px-1.5 py-0.5 rounded text-[9px] font-medium"
         style={{ background: `${color}20`, color, border: `1px solid ${color}40` }}
-        onClick={handleClick}
       >
         {stock.industry.split(' ')[0]}
       </div>

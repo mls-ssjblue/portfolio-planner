@@ -172,13 +172,17 @@ export default function StockLibrary() {
   // Tickers already in library
   const libraryTickers = useMemo(() => new Set(stockLibrary.map((s) => s.ticker)), [stockLibrary]);
 
-  // Filter library stocks
-  const filteredLibrary = useMemo(() => stockLibrary.filter((s) => {
+  // Filter library stocks — sorted alphabetically by ticker
+  const filteredLibrary = useMemo(() => {
     const q = search.toLowerCase();
-    const matchSearch = !q || s.ticker.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
-    const matchIndustry = industryFilter === 'All' || s.industry === industryFilter;
-    return matchSearch && matchIndustry;
-  }), [stockLibrary, search, industryFilter]);
+    return stockLibrary
+      .filter((s) => {
+        const matchSearch = !q || s.ticker.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
+        const matchIndustry = industryFilter === 'All' || s.industry === industryFilter;
+        return matchSearch && matchIndustry;
+      })
+      .sort((a, b) => a.ticker.localeCompare(b.ticker));
+  }, [stockLibrary, search, industryFilter]);
 
   // Search S&P 500 catalog for stocks NOT already in library
   const catalogResults = useMemo(() => {

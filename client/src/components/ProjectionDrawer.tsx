@@ -2,7 +2,7 @@
 // Design: Sophisticated Finance Dashboard (deep navy + gold)
 // Per-stock bear/base/bull financial projection inputs
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, TrendingUp, TrendingDown, Minus, Info, DollarSign, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +50,31 @@ function NumberInput({
 }) {
   const [localVal, setLocalVal] = useState(value.toString());
   const [focused, setFocused] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync localVal when value changes externally (e.g. switching stocks)
+  useEffect(() => {
+    if (!focused) {
+      setLocalVal(value.toString());
+    }
+  }, [value, focused]);
+
+  const handleChange = (raw: string) => {
+    setLocalVal(raw);
+    // Debounce save to store so data persists even without blur
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      const num = parseFloat(raw);
+      if (!isNaN(num)) {
+        const clamped = min !== undefined && max !== undefined
+          ? Math.min(max, Math.max(min, num))
+          : min !== undefined ? Math.max(min, num)
+          : max !== undefined ? Math.min(max, num)
+          : num;
+        onChange(clamped);
+      }
+    }, 400);
+  };
 
   return (
     <div>
@@ -72,9 +97,11 @@ function NumberInput({
           type="number"
           value={focused ? localVal : value}
           onFocus={() => { setLocalVal(value.toString()); setFocused(true); }}
-          onChange={(e) => setLocalVal(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
           onBlur={() => {
             setFocused(false);
+            // Immediate save on blur (cancel debounce)
+            if (debounceRef.current) clearTimeout(debounceRef.current);
             const num = parseFloat(localVal);
             if (!isNaN(num)) {
               const clamped = min !== undefined && max !== undefined

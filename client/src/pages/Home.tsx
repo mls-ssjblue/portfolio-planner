@@ -49,13 +49,12 @@ export default function Home() {
   const [mobileTab, setMobileTab] = useState<MobileTab>('portfolio');
   const stockLibrary = usePortfolioStore((s) => s.stockLibrary);
 
-  // After hydration, if there are no portfolios (or only a blank placeholder), inject Current Portfolio
+  // After hydration, inject Current Portfolio if it doesn't already exist
   const stockLibraryForInit = usePortfolioStore((s) => s.stockLibrary);
   useEffect(() => {
     if (!hasHydrated) return;
-    const isBlank = portfolios.length === 0 ||
-      (portfolios.length === 1 && portfolios[0].stocks.length === 0 && portfolios[0].name === 'My Portfolio');
-    if (isBlank) {
+    const alreadyExists = portfolios.some((p) => p.name === 'Current Portfolio');
+    if (!alreadyExists) {
       // Build Current Portfolio from the live stock library
       const HOLDINGS = [
         { ticker: 'AMD',   allocationPct: 42.27 },
@@ -97,7 +96,10 @@ export default function Home() {
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
-      usePortfolioStore.setState({ portfolios: [currentPortfolio], activePortfolioId: id });
+      usePortfolioStore.setState((s) => ({
+        portfolios: s.portfolios.length === 0 ? [currentPortfolio] : [...s.portfolios, currentPortfolio],
+        activePortfolioId: id,
+      }));
     }
   }, [hasHydrated]);
 

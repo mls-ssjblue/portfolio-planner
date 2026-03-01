@@ -56,6 +56,9 @@ export interface ScenarioProjection {
   // ── FCF inputs (optional alternative) ───────────────────────────────────
   fcfMarginPct: number;         // FCF margin at exit year (e.g. 12 = 12%)
 
+  // ── Auto-derived NI growth rate flag ──────────────────────────────────────
+  niGrowthAutoSet?: boolean;    // true = rate was auto-derived; clears when user manually edits
+
   // ── Target price override ────────────────────────────────────────────────
   targetPriceOverride?: number; // Manual override (for crypto/ETF)
 }

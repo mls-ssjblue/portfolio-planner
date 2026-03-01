@@ -44,6 +44,7 @@ const scenarioSchema = z.object({
   fcfMultiple: z.number(),
   fcfMarginPct: z.number(),
   targetPriceOverride: z.number().optional(),
+  niGrowthAutoSet: z.boolean().optional(),
 });
 
 const stockProjectionsSchema = z.object({

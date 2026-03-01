@@ -261,14 +261,21 @@ function ScenarioForm({
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Net Income Growth</h4>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <NumberInput
-              label="NI Growth Rate"
-              value={projData.netIncomeGrowthRate}
-              onChange={(v) => onChange({ netIncomeGrowthRate: v })}
-              suffix="%"
-              tooltip={`Expected annual net income growth rate over ${years} years`}
-              step={0.5}
-            />
+            <div className="relative">
+              <NumberInput
+                label="NI Growth Rate"
+                value={projData.netIncomeGrowthRate}
+                onChange={(v) => onChange({ netIncomeGrowthRate: v, niGrowthAutoSet: false })}
+                suffix="%"
+                tooltip={`Expected annual net income growth rate over ${years} years. Derived from revenue growth × margin expansion when AUTO is shown.`}
+                step={0.5}
+              />
+              {projData.niGrowthAutoSet && (
+                <span className="absolute top-0 right-0 text-[9px] font-bold px-1 py-0.5 rounded bg-[oklch(0.75_0.12_75/20%)] text-[oklch(0.75_0.12_75)] border border-[oklch(0.75_0.12_75/30%)] leading-none">
+                  AUTO
+                </span>
+              )}
+            </div>
             <DerivedValue
               label={`Year ${years} Net Income`}
               value={(() => {

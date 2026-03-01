@@ -188,7 +188,7 @@ export async function replacePortfolioStocks(
     await db.insert(portfolioStocks).values(
       stocks.map((s) => ({
         portfolioId,
-        stockId: s.stockId,
+        stockId: s.stockId.toUpperCase(),
         allocationPct: s.allocationPct,
         sortOrder: s.sortOrder,
       }))

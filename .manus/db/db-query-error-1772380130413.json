@@ -1,0 +1,8 @@
+{
+  "query": "SELECT p.id, p.name, COUNT(ps.id) as stock_count FROM portfolios p LEFT JOIN portfolio_stocks ps ON p.id = ps.portfolio_id GROUP BY p.id, p.name ORDER BY p.created_at;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 39WtxQTQZUKe41R.root --database jkQ9xJrmBM27yUbTi7dGC8 --execute SELECT p.id, p.name, COUNT(ps.id) as stock_count FROM portfolios p LEFT JOIN portfolio_stocks ps ON p.id = ps.portfolio_id GROUP BY p.id, p.name ORDER BY p.created_at;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'ps.portfolio_id' in 'on clause'"
+  ]
+}

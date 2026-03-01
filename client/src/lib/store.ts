@@ -394,7 +394,7 @@ export const usePortfolioStore = create<PortfolioStore>()(
             cashPct: p.cashPct,
             projectionYears: p.projectionYears,
             stocks: (p.stocks ?? []).map((s) => ({
-              stockId: s.stockId,
+              stockId: s.stockId.toUpperCase(),
               allocationPct: s.allocationPct,
             })),
             createdAt: new Date(p.createdAt).getTime(),

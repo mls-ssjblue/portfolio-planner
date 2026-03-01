@@ -1,0 +1,14 @@
+{
+  "query": "SELECT portfolioId, COUNT(*) as stock_count FROM portfolio_stocks GROUP BY portfolioId;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 39WtxQTQZUKe41R.root --database jkQ9xJrmBM27yUbTi7dGC8 --execute SELECT portfolioId, COUNT(*) as stock_count FROM portfolio_stocks GROUP BY portfolioId;",
+  "rows": [
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stock_count": "21"
+    }
+  ],
+  "messages": [],
+  "stdout": "portfolioId\tstock_count\nYCOgcAYRi5SK_oRpQInyM\t21\n",
+  "stderr": "",
+  "execution_time_ms": 1538
+}

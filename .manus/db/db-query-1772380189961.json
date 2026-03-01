@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE user_settings SET activePortfolioId = 'YCOgcAYRi5SK_oRpQInyM' WHERE userId = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 39WtxQTQZUKe41R.root --database jkQ9xJrmBM27yUbTi7dGC8 --execute UPDATE user_settings SET activePortfolioId = 'YCOgcAYRi5SK_oRpQInyM' WHERE userId = 1;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1532
+}

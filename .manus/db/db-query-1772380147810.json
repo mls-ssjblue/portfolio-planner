@@ -1,0 +1,115 @@
+{
+  "query": "SELECT portfolioId, stockId, allocationPct FROM portfolio_stocks ORDER BY sortOrder LIMIT 30;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 39WtxQTQZUKe41R.root --database jkQ9xJrmBM27yUbTi7dGC8 --execute SELECT portfolioId, stockId, allocationPct FROM portfolio_stocks ORDER BY sortOrder LIMIT 30;",
+  "rows": [
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "amd",
+      "allocationPct": "42.3"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "nvda",
+      "allocationPct": "11.9"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "mu",
+      "allocationPct": "9"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "hims",
+      "allocationPct": "7.3"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "googl",
+      "allocationPct": "5.3"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "elf",
+      "allocationPct": "3.2"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "tln",
+      "allocationPct": "3.2"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "leu",
+      "allocationPct": "2.9"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "cls",
+      "allocationPct": "2.4"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "amzn",
+      "allocationPct": "2.1"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "hnst",
+      "allocationPct": "1.7"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "ionq",
+      "allocationPct": "1.7"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "nu",
+      "allocationPct": "1.6"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "fubo",
+      "allocationPct": "1.3"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "ceg",
+      "allocationPct": "1"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "iren",
+      "allocationPct": "1"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "pltr",
+      "allocationPct": "0.8"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "sofi",
+      "allocationPct": "0.7"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "msft",
+      "allocationPct": "0.4"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "grrr",
+      "allocationPct": "0.3"
+    },
+    {
+      "portfolioId": "YCOgcAYRi5SK_oRpQInyM",
+      "stockId": "smci",
+      "allocationPct": "0.1"
+    }
+  ],
+  "messages": [],
+  "stdout": "portfolioId\tstockId\tallocationPct\nYCOgcAYRi5SK_oRpQInyM\tamd\t42.3\nYCOgcAYRi5SK_oRpQInyM\tnvda\t11.9\nYCOgcAYRi5SK_oRpQInyM\tmu\t9\nYCOgcAYRi5SK_oRpQInyM\thims\t7.3\nYCOgcAYRi5SK_oRpQInyM\tgoogl\t5.3\nYCOgcAYRi5SK_oRpQInyM\telf\t3.2\nYCOgcAYRi5SK_oRpQInyM\ttln\t3.2\nYCOgcAYRi5SK_oRpQInyM\tleu\t2.9\nYCOgcAYRi5SK_oRpQInyM\tcls\t2.4\nYCOgcAYRi5SK_oRpQInyM\tamzn\t2.1\nYCOgcAYRi5SK_oRpQInyM\thnst\t1.7\nYCOgcAYRi5SK_oRpQInyM\tionq\t1.7\nYCOgcAYRi5SK_oRpQInyM\tnu\t1.6\nYCOgcAYRi5SK_oRpQInyM\tfubo\t1.3\nYCOgcAYRi5SK_oRpQInyM\tceg\t1\nYCOgcAYRi5SK_oRpQInyM\tiren\t1\nYCOgcAYRi5SK_oRpQInyM\tpltr\t0.8\nYCOgcAYRi5SK_oRpQInyM\tsofi\t0.7\nYCOgcAYRi5SK_oRpQInyM\tmsft\t0.4\nYCOgcAYRi5SK_oRpQInyM\tgrrr\t0.3\nYCOgcAYRi5SK_oRpQInyM\tsmci\t0.1\n",
+  "stderr": "",
+  "execution_time_ms": 1511
+}

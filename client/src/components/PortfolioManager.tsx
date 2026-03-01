@@ -383,6 +383,11 @@ export default function PortfolioManager() {
     setCapitalEditing(false);
   };
 
+  // Sort stocks by dollar allocation (highest first) for display
+  const sortedStocks = activePortfolio
+    ? [...activePortfolio.stocks].sort((a, b) => b.allocationPct - a.allocationPct)
+    : [];
+
   const stocksAllocated = activePortfolio
     ? activePortfolio.stocks.reduce((s, ps) => s + ps.allocationPct, 0)
     : 0;
@@ -560,15 +565,15 @@ export default function PortfolioManager() {
             {/* Stock list */}
             <div className="flex-1 px-4 py-3 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
               <SortableContext
-                items={activePortfolio.stocks.map((s) => s.stockId)}
+                items={sortedStocks.map((s) => s.stockId)}
                 strategy={verticalListSortingStrategy}
               >
                 <div className="space-y-2">
-                  {activePortfolio.stocks.length === 0 ? (
+                  {sortedStocks.length === 0 ? (
                     <PortfolioDropZone isEmpty={true} />
                   ) : (
                     <>
-                      {activePortfolio.stocks.map((ps) => (
+                      {sortedStocks.map((ps) => (
                         <SortableStockRow
                           key={ps.stockId}
                           portfolioStock={ps}

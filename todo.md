@@ -17,3 +17,4 @@
 - [x] Add EPS valuation method: netIncomeGrowthRate → EPS → P/E, make it default
 - [x] Auto-derive netIncomeGrowthRate as one-time default from revenueGrowthRate + netMarginPct per scenario, with AUTO badge
 - [x] Support P/E range (low/mid/high) in ScenarioProjection and projection drawer UI
+- [x] Fix: saved stocks and allocations not showing in portfolios after refresh/login

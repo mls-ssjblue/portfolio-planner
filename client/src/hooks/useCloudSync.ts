@@ -3,15 +3,21 @@
  *
  * Behaviour:
  * - On mount (when user is authenticated): loads cloud data and merges into the store.
- * - On any portfolio change: debounces 1.5s then pushes to the DB.
+ * - On any portfolio change AFTER the initial merge: debounces 1.5s then pushes to the DB.
  * - On stock projection edit: pushes immediately (called explicitly from ProjectionDrawer).
  * - When not authenticated: silently skips all sync (localStorage-only mode).
+ *
+ * Race condition fix:
+ * - `mergedRef` is a ref so flipping it doesn't trigger a re-render of the push effect.
+ * - We use `cloudMergedAt` (a useState timestamp) so the push effect re-runs with the
+ *   freshly merged portfolios, not the stale pre-merge state from localStorage.
+ * - The push effect skips the very first run after merge (isFirstRunAfterMerge) to avoid
+ *   immediately overwriting the cloud data we just loaded.
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { usePortfolioStore } from '@/lib/store';
-import type { Portfolio, PortfolioStock } from '@/lib/types';
 import type { StockProjections } from '@/lib/types';
 
 const DEBOUNCE_MS = 1500;
@@ -27,32 +33,49 @@ export function useCloudSync(isAuthenticated: boolean) {
   const deletePortfolioMutation = trpc.sync.deletePortfolio.useMutation();
   const pushProjectionMutation = trpc.sync.pushStockProjection.useMutation();
 
-  // Load cloud data once on mount when authenticated + hydrated
+  // Load cloud data once per session when authenticated + hydrated
   const { data: cloudData, isSuccess: cloudLoaded } = trpc.sync.load.useQuery(
     undefined,
     {
       enabled: isAuthenticated && hasHydrated,
-      staleTime: Infinity, // Only load once per session
+      staleTime: Infinity,
       retry: 1,
     }
   );
 
-  // Merge cloud data into the store when it arrives
+  // cloudMergedAt is a state value (not a ref) so that the push effect re-runs
+  // with the correct merged portfolios after loadCloudData has been called.
+  const [cloudMergedAt, setCloudMergedAt] = useState<number | null>(null);
   const mergedRef = useRef(false);
+
   useEffect(() => {
     if (cloudLoaded && cloudData && !mergedRef.current) {
       mergedRef.current = true;
       loadCloudData(cloudData);
+      // Signal that the merge is done — this triggers the push effect to re-run
+      // with the freshly merged portfolios.
+      setCloudMergedAt(Date.now());
     }
   }, [cloudLoaded, cloudData, loadCloudData]);
 
-  // Debounced push of portfolio state
+  // Debounced push of portfolio state.
+  // Only runs after cloud data has been merged (cloudMergedAt is set).
+  // Skips the very first run after merge to avoid overwriting cloud data immediately.
+  const isFirstRunAfterMerge = useRef(true);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSyncingRef = useRef(false);
 
   useEffect(() => {
-    // Don't sync until: authenticated, hydrated, and cloud data has been loaded
-    if (!isAuthenticated || !hasHydrated || !mergedRef.current) return;
+    // Don't push until authenticated, hydrated, and cloud data has been merged
+    if (!isAuthenticated || !hasHydrated || cloudMergedAt === null) return;
+
+    // Skip the very first run triggered by cloudMergedAt being set — that run
+    // would push the just-loaded cloud data right back, which is a no-op at best
+    // and could overwrite stocks if the state snapshot is slightly stale.
+    if (isFirstRunAfterMerge.current) {
+      isFirstRunAfterMerge.current = false;
+      return;
+    }
 
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
@@ -60,8 +83,11 @@ export function useCloudSync(isAuthenticated: boolean) {
       if (isSyncingRef.current) return;
       isSyncingRef.current = true;
       try {
+        // Read the latest portfolios directly from the store to avoid stale closure
+        const latestPortfolios = usePortfolioStore.getState().portfolios;
+        const latestActiveId = usePortfolioStore.getState().activePortfolioId;
         await pushPortfoliosMutation.mutateAsync({
-          portfolios: portfolios.map((p) => ({
+          portfolios: latestPortfolios.map((p) => ({
             id: p.id,
             name: p.name,
             totalCapital: p.totalCapital,
@@ -74,7 +100,7 @@ export function useCloudSync(isAuthenticated: boolean) {
               sortOrder: idx,
             })),
           })),
-          activePortfolioId,
+          activePortfolioId: latestActiveId,
         });
       } catch (err) {
         console.warn('[CloudSync] Push portfolios failed:', err);
@@ -86,7 +112,7 @@ export function useCloudSync(isAuthenticated: boolean) {
     return () => {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
     };
-  }, [portfolios, activePortfolioId, isAuthenticated, hasHydrated]);
+  }, [portfolios, activePortfolioId, isAuthenticated, hasHydrated, cloudMergedAt]);
 
   // Explicit push for a deleted portfolio
   const syncDeletePortfolio = useCallback(

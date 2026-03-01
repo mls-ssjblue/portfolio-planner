@@ -253,7 +253,81 @@ function ScenarioForm({
 
   return (
     <div className="space-y-4">
-      {/* ── Step 1: Revenue Growth ─────────────────────────────────────────── */}
+      {/* ── Step 1: EPS Method (NI Growth → EPS → P/E) ───────────────────── */}
+      {currentData.valuationMethod === 'eps' && (
+        <div className="rounded-lg p-3 bg-[oklch(1_0_0/3%)] border border-[oklch(1_0_0/6%)]">
+          <div className="flex items-center gap-1.5 mb-3">
+            <span className="text-[10px] font-bold rounded px-1.5 py-0.5 text-white" style={{ background: cfg.color }}>1</span>
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Net Income Growth</h4>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <NumberInput
+              label="NI Growth Rate"
+              value={projData.netIncomeGrowthRate}
+              onChange={(v) => onChange({ netIncomeGrowthRate: v })}
+              suffix="%"
+              tooltip={`Expected annual net income growth rate over ${years} years`}
+              step={0.5}
+            />
+            <DerivedValue
+              label={`Year ${years} Net Income`}
+              value={(() => {
+                const futNI = currentData.currentNetIncomeB * Math.pow(1 + projData.netIncomeGrowthRate / 100, years);
+                return `$${Math.abs(futNI) >= 1 ? futNI.toFixed(1)+'B' : (futNI*1000).toFixed(0)+'M'}`;
+              })()}
+              color={cfg.color}
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-3 mt-3">
+            <NumberInput
+              label="P/E Low"
+              value={projData.peMultipleLow ?? projData.peMultiple}
+              onChange={(v) => onChange({ peMultipleLow: v })}
+              suffix="x"
+              tooltip="Low end of the P/E range (pessimistic multiple)"
+              step={1}
+              min={0}
+            />
+            <NumberInput
+              label="P/E Mid"
+              value={projData.peMultiple}
+              onChange={(v) => onChange({ peMultiple: v })}
+              suffix="x"
+              tooltip="Mid P/E multiple (used as fallback if range not set)"
+              step={1}
+              min={0}
+            />
+            <NumberInput
+              label="P/E High"
+              value={projData.peMultipleHigh ?? projData.peMultiple}
+              onChange={(v) => onChange({ peMultipleHigh: v })}
+              suffix="x"
+              tooltip="High end of the P/E range (optimistic multiple)"
+              step={1}
+              min={0}
+            />
+          </div>
+          {/* EPS-derived target price range */}
+          {(() => {
+            const futNI = currentData.currentNetIncomeB * Math.pow(1 + projData.netIncomeGrowthRate / 100, years);
+            const shares = currentData.currentSharesB > 0 ? currentData.currentSharesB : 1;
+            const futEPS = futNI / shares;
+            const peLow = projData.peMultipleLow ?? projData.peMultiple;
+            const peMid = projData.peMultiple;
+            const peHigh = projData.peMultipleHigh ?? projData.peMultiple;
+            return (
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                <DerivedValue label="Low Target" value={futEPS > 0 ? `$${(futEPS * peLow).toFixed(0)}` : 'N/A'} color="#dc4040" />
+                <DerivedValue label="Mid Target" value={futEPS > 0 ? `$${(futEPS * peMid).toFixed(0)}` : 'N/A'} color={cfg.color} />
+                <DerivedValue label="High Target" value={futEPS > 0 ? `$${(futEPS * peHigh).toFixed(0)}` : 'N/A'} color="#22c55e" />
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* ── Step 1: Revenue Growth (non-EPS methods) ──────────────────────── */}
+      {currentData.valuationMethod !== 'eps' && (
       <div className="rounded-lg p-3 bg-[oklch(1_0_0/3%)] border border-[oklch(1_0_0/6%)]">
         <div className="flex items-center gap-1.5 mb-3">
           <span className="text-[10px] font-bold rounded px-1.5 py-0.5 text-white" style={{ background: cfg.color }}>1</span>
@@ -275,6 +349,7 @@ function ScenarioForm({
           />
         </div>
       </div>
+      )}
 
       {/* ── Step 2: Profitability ──────────────────────────────────────────── */}
       <div className="rounded-lg p-3 bg-[oklch(1_0_0/3%)] border border-[oklch(1_0_0/6%)]">
@@ -549,7 +624,8 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[oklch(0.17_0.04_255)] border-[oklch(1_0_0/10%)]">
-                <SelectItem value="pe">P/E Ratio</SelectItem>
+                <SelectItem value="eps">EPS (NI Growth)</SelectItem>
+                <SelectItem value="pe">P/E (Rev-based)</SelectItem>
                 <SelectItem value="ps">P/S Ratio</SelectItem>
                 <SelectItem value="fcf">P/FCF Ratio</SelectItem>
                 <SelectItem value="price">Price Target</SelectItem>

@@ -22,22 +22,34 @@ export type Industry =
 /**
  * Per-scenario projection inputs.
  * The calculation chain is:
- *   Future Revenue = currentRevenue × (1 + revenueGrowthRate/100)^N
- *   Future Net Income = Future Revenue × (netMarginPct/100)
- *   Future EPS = Future Net Income / sharesOutstanding (in same units)
- *   Target Price (P/E) = Future EPS × peMultiple
- *   Target Price (P/S) = (Future Revenue / sharesOutstanding) × psMultiple
- *   Target Price (P/FCF) = (Future FCF / sharesOutstanding) × fcfMultiple
+ *   EPS method (default):
+ *     Future Net Income = currentNetIncomeB × (1 + netIncomeGrowthRate/100)^N
+ *     Future EPS        = Future Net Income / currentSharesB
+ *     Target Price      = Future EPS × peMultiple  (or midpoint of peMultipleLow..peMultipleHigh)
+ *
+ *   Revenue P/E method:
+ *     Future Revenue    = currentRevenueB × (1 + revenueGrowthRate/100)^N
+ *     Future Net Income = Future Revenue × (netMarginPct/100)
+ *     Future EPS        = Future Net Income / currentSharesB
+ *     Target Price      = Future EPS × peMultiple
+ *
+ *   P/S method:  (Future Revenue / shares) × psMultiple
+ *   P/FCF method: (Future FCF / shares) × fcfMultiple
  */
 export interface ScenarioProjection {
-  // ── Revenue inputs ──────────────────────────────────────────────────────
+  // ── EPS / net income growth inputs (used by 'eps' method) ────────────────
+  netIncomeGrowthRate: number;  // % per year net income growth (e.g. 20 = 20%)
+
+  // ── Revenue inputs (used by 'pe', 'ps', 'fcf' methods) ──────────────────
   revenueGrowthRate: number;    // % per year (e.g. 20 = 20%)
 
   // ── Profitability inputs ─────────────────────────────────────────────────
   netMarginPct: number;         // Net margin at exit year (e.g. 15 = 15%)
 
   // ── Valuation multiple inputs ────────────────────────────────────────────
-  peMultiple: number;           // Exit P/E multiple
+  peMultiple: number;           // Exit P/E multiple (point estimate or midpoint)
+  peMultipleLow?: number;       // Low end of P/E range (produces bear-within-scenario price)
+  peMultipleHigh?: number;      // High end of P/E range (produces bull-within-scenario price)
   psMultiple: number;           // Exit P/S multiple (alternative method)
   fcfMultiple: number;          // Exit P/FCF multiple (alternative method)
 
@@ -70,7 +82,7 @@ export interface StockProjections {
   currentPS: number;            // Price/Sales
 
   // ── Valuation method preference ──────────────────────────────────────────
-  valuationMethod: 'pe' | 'ps' | 'fcf' | 'price';
+  valuationMethod: 'eps' | 'pe' | 'ps' | 'fcf' | 'price';
 
   // ── Data freshness ───────────────────────────────────────────────────────
   dataAsOf?: string;            // ISO date string when data was last fetched
@@ -122,9 +134,12 @@ export const INDUSTRY_COLORS: Record<Industry, string> = {
 };
 
 export const DEFAULT_SCENARIO: ScenarioProjection = {
+  netIncomeGrowthRate: 15,
   revenueGrowthRate: 10,
   netMarginPct: 10,
   peMultiple: 20,
+  peMultipleLow: 15,
+  peMultipleHigh: 25,
   psMultiple: 5,
   fcfMultiple: 20,
   fcfMarginPct: 8,
@@ -133,9 +148,12 @@ export const DEFAULT_SCENARIO: ScenarioProjection = {
 export const DEFAULT_PROJECTIONS: StockProjections = {
   bear: {
     ...DEFAULT_SCENARIO,
+    netIncomeGrowthRate: 8,
     revenueGrowthRate: 5,
     netMarginPct: 8,
     peMultiple: 15,
+    peMultipleLow: 12,
+    peMultipleHigh: 18,
     psMultiple: 3,
     fcfMultiple: 15,
     fcfMarginPct: 5,
@@ -143,9 +161,12 @@ export const DEFAULT_PROJECTIONS: StockProjections = {
   base: { ...DEFAULT_SCENARIO },
   bull: {
     ...DEFAULT_SCENARIO,
+    netIncomeGrowthRate: 25,
     revenueGrowthRate: 20,
     netMarginPct: 15,
     peMultiple: 30,
+    peMultipleLow: 25,
+    peMultipleHigh: 40,
     psMultiple: 8,
     fcfMultiple: 30,
     fcfMarginPct: 12,
@@ -164,6 +185,6 @@ export const DEFAULT_PROJECTIONS: StockProjections = {
   currentPE: 20,
   currentPEForward: 18,
   currentPS: 5,
-  valuationMethod: 'pe',
+  valuationMethod: 'eps',
   dataAsOf: '2026-02-28',
 };

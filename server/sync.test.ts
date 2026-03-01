@@ -108,6 +108,7 @@ describe("sync.pushStockProjection", () => {
       stockId: "AAPL",
       projections: {
         bear: {
+          netIncomeGrowthRate: 8,
           revenueGrowthRate: 5,
           netMarginPct: 22,
           peMultiple: 20,
@@ -116,6 +117,7 @@ describe("sync.pushStockProjection", () => {
           fcfMarginPct: 22,
         },
         base: {
+          netIncomeGrowthRate: 15,
           revenueGrowthRate: 10,
           netMarginPct: 25,
           peMultiple: 28,
@@ -124,6 +126,7 @@ describe("sync.pushStockProjection", () => {
           fcfMarginPct: 25,
         },
         bull: {
+          netIncomeGrowthRate: 25,
           revenueGrowthRate: 18,
           netMarginPct: 28,
           peMultiple: 35,

@@ -9,46 +9,59 @@ export type Scenario = 'bear' | 'base' | 'bull';
 /**
  * Calculate the implied target price for a stock in a given scenario after N years.
  *
- * Primary method (P/E):
- *   Future Revenue = currentRevenueB × (1 + revenueGrowthRate/100)^N  [in $B]
- *   Future Net Income = Future Revenue × (netMarginPct/100)             [in $B]
- *   Future EPS = Future Net Income / currentSharesB                     [$/share]
- *   Target Price = Future EPS × peMultiple
+ * EPS method (default):
+ *   Future Net Income = currentNetIncomeB × (1 + netIncomeGrowthRate/100)^N
+ *   Future EPS        = Future Net Income / currentSharesB
+ *   Target Price      = Future EPS × peMultiple
+ *   If peMultipleLow/High provided, returns midpoint; use calcTargetPriceRange for bounds.
  *
- * Alternative P/S method:
- *   Revenue Per Share = Future Revenue / currentSharesB
- *   Target Price = Revenue Per Share × psMultiple
+ * Revenue P/E method:
+ *   Future Revenue    = currentRevenueB × (1 + revenueGrowthRate/100)^N
+ *   Future Net Income = Future Revenue × (netMarginPct/100)
+ *   Future EPS        = Future Net Income / currentSharesB
+ *   Target Price      = Future EPS × peMultiple
  *
- * Alternative P/FCF method:
- *   Future FCF = Future Revenue × (fcfMarginPct/100)
- *   FCF Per Share = Future FCF / currentSharesB
- *   Target Price = FCF Per Share × fcfMultiple
+ * P/S method:  (Future Revenue / shares) × psMultiple
+ * P/FCF method: (Future FCF / shares) × fcfMultiple
  */
 export function calcTargetPrice(
   proj: ScenarioProjection,
-  currentData: Pick<StockProjections, 'currentPrice' | 'currentRevenueB' | 'currentSharesB' | 'valuationMethod'>,
+  currentData: Pick<StockProjections, 'currentPrice' | 'currentRevenueB' | 'currentNetIncomeB' | 'currentSharesB' | 'valuationMethod'>,
   years: number
 ): number {
-  const { currentRevenueB, currentSharesB, valuationMethod } = currentData;
+  const { currentRevenueB, currentNetIncomeB, currentSharesB, valuationMethod } = currentData;
 
   // Guard: need shares outstanding
   const shares = currentSharesB > 0 ? currentSharesB : 1;
 
-  // Future revenue in $B
+  // Future revenue in $B (used by pe/ps/fcf methods)
   const futureRevenueB = currentRevenueB * Math.pow(1 + proj.revenueGrowthRate / 100, years);
 
-  // P/E method: Revenue → Net Income → EPS → Price
+  // EPS method: Net Income grows at netIncomeGrowthRate directly → EPS → Price
+  // Uses midpoint of P/E range if both low and high are provided.
+  const calcEPS = (): number => {
+    const futureNetIncomeB = currentNetIncomeB * Math.pow(1 + proj.netIncomeGrowthRate / 100, years);
+    if (futureNetIncomeB <= 0) return 0;
+    const futureEPS = futureNetIncomeB / shares; // both in billions → $/share
+    const effectivePE = (proj.peMultipleLow != null && proj.peMultipleHigh != null)
+      ? (proj.peMultipleLow + proj.peMultipleHigh) / 2
+      : proj.peMultiple;
+    if (effectivePE <= 0) return 0;
+    return futureEPS * effectivePE;
+  };
+
+  // Revenue P/E method: Revenue → Net Income → EPS → Price
   const calcPE = (): number => {
     if (proj.peMultiple <= 0 || proj.netMarginPct === 0) return 0;
     const futureNetIncomeB = futureRevenueB * (proj.netMarginPct / 100);
-    const futureEPS = (futureNetIncomeB * 1e9) / (shares * 1e9); // B/B = ratio
+    const futureEPS = futureNetIncomeB / shares;
     return futureEPS * proj.peMultiple;
   };
 
   // P/S method: Revenue per share × P/S multiple
   const calcPS = (): number => {
     if (proj.psMultiple <= 0) return 0;
-    const revenuePerShare = (futureRevenueB * 1e9) / (shares * 1e9);
+    const revenuePerShare = futureRevenueB / shares;
     return revenuePerShare * proj.psMultiple;
   };
 
@@ -56,7 +69,7 @@ export function calcTargetPrice(
   const calcFCF = (): number => {
     if (proj.fcfMultiple <= 0 || proj.fcfMarginPct === 0) return 0;
     const futureFCFB = futureRevenueB * (proj.fcfMarginPct / 100);
-    const fcfPerShare = (futureFCFB * 1e9) / (shares * 1e9);
+    const fcfPerShare = futureFCFB / shares;
     return fcfPerShare * proj.fcfMultiple;
   };
 
@@ -65,7 +78,18 @@ export function calcTargetPrice(
     if (proj.targetPriceOverride !== undefined && proj.targetPriceOverride > 0) {
       return proj.targetPriceOverride;
     }
-    // Fallback to best available method
+    // Fallback to EPS method
+  }
+
+  if (valuationMethod === 'eps') {
+    const result = calcEPS();
+    if (result > 0) return result;
+    // Fallback chain
+    const peResult = calcPE();
+    if (peResult > 0) return peResult;
+    const psResult = calcPS();
+    if (psResult > 0) return psResult;
+    return calcFCF();
   }
 
   if (valuationMethod === 'pe') {
@@ -92,12 +116,39 @@ export function calcTargetPrice(
     return calcPE();
   }
 
-  // Final fallback: try all methods in order
+  // Final fallback: EPS → PE → PS → FCF
+  const epsResult = calcEPS();
+  if (epsResult > 0) return epsResult;
   const peResult = calcPE();
   if (peResult > 0) return peResult;
   const psResult = calcPS();
   if (psResult > 0) return psResult;
   return calcFCF();
+}
+
+/**
+ * Calculate the low and high target price bounds using the P/E range.
+ * Only meaningful for 'eps' method with peMultipleLow/peMultipleHigh set.
+ * Returns { low, mid, high } prices.
+ */
+export function calcTargetPriceRange(
+  proj: ScenarioProjection,
+  currentData: Pick<StockProjections, 'currentPrice' | 'currentRevenueB' | 'currentNetIncomeB' | 'currentSharesB' | 'valuationMethod'>,
+  years: number
+): { low: number; mid: number; high: number } {
+  const mid = calcTargetPrice(proj, currentData, years);
+  if (proj.peMultipleLow == null || proj.peMultipleHigh == null) {
+    return { low: mid, mid, high: mid };
+  }
+  const shares = currentData.currentSharesB > 0 ? currentData.currentSharesB : 1;
+  const futureNetIncomeB = currentData.currentNetIncomeB * Math.pow(1 + proj.netIncomeGrowthRate / 100, years);
+  if (futureNetIncomeB <= 0) return { low: 0, mid: 0, high: 0 };
+  const futureEPS = futureNetIncomeB / shares;
+  return {
+    low: futureEPS * proj.peMultipleLow,
+    mid,
+    high: futureEPS * proj.peMultipleHigh,
+  };
 }
 
 /**

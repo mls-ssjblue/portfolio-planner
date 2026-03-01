@@ -11,3 +11,6 @@
 - [x] Debounce portfolio sort: re-order only 1 second after slider is released, not during dragging
 - [x] Prevent sliders from changing values while scrolling (block wheel events on all sliders)
 - [x] Slider requires press-and-hold (200ms) before activating; reduce visual size of slider area
+- [x] Add EPS valuation method: net income growth rate → EPS → P/E target price, make it default
+- [x] Support P/E range (low/high) in ScenarioProjection and projection drawer UI
+- [x] Convert Analytics panel from always-visible right column to a tab in the main layout

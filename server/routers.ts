@@ -34,9 +34,12 @@ const portfolioSchema = z.object({
 });
 
 const scenarioSchema = z.object({
+  netIncomeGrowthRate: z.number(),
   revenueGrowthRate: z.number(),
   netMarginPct: z.number(),
   peMultiple: z.number(),
+  peMultipleLow: z.number().optional(),
+  peMultipleHigh: z.number().optional(),
   psMultiple: z.number(),
   fcfMultiple: z.number(),
   fcfMarginPct: z.number(),
@@ -61,7 +64,7 @@ const stockProjectionsSchema = z.object({
   currentPE: z.number(),
   currentPEForward: z.number(),
   currentPS: z.number(),
-  valuationMethod: z.enum(["pe", "ps", "fcf", "price"]),
+  valuationMethod: z.enum(["eps", "pe", "ps", "fcf", "price"]),
   dataAsOf: z.string().optional(),
 });
 

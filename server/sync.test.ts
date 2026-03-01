@@ -15,6 +15,7 @@ vi.mock("./db", () => ({
   getUserSettings: vi.fn().mockResolvedValue(null),
   upsertPortfolio: vi.fn().mockResolvedValue(undefined),
   deletePortfolio: vi.fn().mockResolvedValue(undefined),
+  deletePortfoliosNotInList: vi.fn().mockResolvedValue(undefined),
   replacePortfolioStocks: vi.fn().mockResolvedValue(undefined),
   upsertStockProjection: vi.fn().mockResolvedValue(undefined),
   upsertUserSettings: vi.fn().mockResolvedValue(undefined),

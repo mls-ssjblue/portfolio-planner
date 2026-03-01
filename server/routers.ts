@@ -9,6 +9,7 @@ import {
   getUserSettings,
   upsertPortfolio,
   deletePortfolio,
+  deletePortfoliosNotInList,
   replacePortfolioStocks,
   upsertStockProjection,
   upsertUserSettings,
@@ -111,6 +112,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const userId = ctx.user.id;
+        // First upsert all current portfolios
         await Promise.all(
           input.portfolios.map(async (p) => {
             await upsertPortfolio({
@@ -125,6 +127,9 @@ export const appRouter = router({
             await replacePortfolioStocks(p.id, p.stocks);
           })
         );
+        // Then delete any DB portfolios that are no longer in the client's list
+        // This prevents deleted portfolios from reappearing on refresh
+        await deletePortfoliosNotInList(userId, input.portfolios.map((p) => p.id));
         await upsertUserSettings({
           userId,
           activePortfolioId: input.activePortfolioId ?? undefined,

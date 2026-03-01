@@ -55,6 +55,10 @@ interface PortfolioStore {
     activePortfolioId: string | null;
   }) => void;
 
+  // Injection guard — prevents duplicate Current Portfolio creation
+  _currentPortfolioInjected: boolean;
+  createCurrentPortfolioFromLibrary: () => void;
+
   // UI state
   selectedStockId: string | null;
   setSelectedStockId: (id: string | null) => void;
@@ -139,6 +143,22 @@ export const usePortfolioStore = create<PortfolioStore>()(
       // checks if portfolios is empty after a small delay.
       _hasHydrated: false,
       setHasHydrated: (v) => set({ _hasHydrated: v }),
+      _currentPortfolioInjected: false,
+
+      createCurrentPortfolioFromLibrary: () => {
+        const state = get();
+        // Guard: never create if one already exists or was already injected
+        if (state._currentPortfolioInjected) return;
+        if (state.portfolios.some((p) => p.name === 'Current Portfolio')) return;
+        const currentPortfolio = createCurrentPortfolio(state.stockLibrary);
+        set((s) => ({
+          portfolios: s.portfolios.length === 0
+            ? [currentPortfolio]
+            : [...s.portfolios, currentPortfolio],
+          activePortfolioId: s.portfolios.length === 0 ? currentPortfolio.id : s.activePortfolioId,
+          _currentPortfolioInjected: true,
+        }));
+      },
 
       addStockToLibrary: (stock) =>
         set((s) => ({ stockLibrary: [...s.stockLibrary, stock] })),
@@ -360,7 +380,9 @@ export const usePortfolioStore = create<PortfolioStore>()(
       },
 
       loadCloudData: (data) => {
-        // Merge cloud portfolios: cloud is source of truth if it has data
+        // Merge cloud portfolios: cloud is source of truth if it has data.
+        // If cloud data doesn't include "Current Portfolio", preserve the local one so it
+        // isn't lost and doesn't get re-injected as a duplicate on the next render.
         if (data.portfolios.length > 0) {
           const cloudPortfolios: Portfolio[] = data.portfolios.map((p) => ({
             id: p.id,
@@ -369,7 +391,6 @@ export const usePortfolioStore = create<PortfolioStore>()(
             allocationMode: p.allocationMode as 'percentage' | 'dollar',
             cashPct: p.cashPct,
             projectionYears: p.projectionYears,
-            // Map DB portfolio_stocks rows to PortfolioStock shape
             stocks: (p.stocks ?? []).map((s) => ({
               stockId: s.stockId,
               allocationPct: s.allocationPct,
@@ -377,8 +398,20 @@ export const usePortfolioStore = create<PortfolioStore>()(
             createdAt: new Date(p.createdAt).getTime(),
             updatedAt: new Date(p.updatedAt).getTime(),
           }));
-          const activeId = data.activePortfolioId ?? cloudPortfolios[0]?.id ?? null;
-          set({ portfolios: cloudPortfolios, activePortfolioId: activeId });
+          const cloudHasCurrentPortfolio = cloudPortfolios.some((p) => p.name === 'Current Portfolio');
+          const state = get();
+          const localCurrentPortfolio = state.portfolios.find((p) => p.name === 'Current Portfolio');
+          // If cloud doesn't have it but local does, keep the local one alongside cloud portfolios
+          const mergedPortfolios = (!cloudHasCurrentPortfolio && localCurrentPortfolio)
+            ? [localCurrentPortfolio, ...cloudPortfolios]
+            : cloudPortfolios;
+          const activeId = data.activePortfolioId ?? mergedPortfolios[0]?.id ?? null;
+          set({
+            portfolios: mergedPortfolios,
+            activePortfolioId: activeId,
+            // Mark injected so Home.tsx useEffect never fires again
+            _currentPortfolioInjected: true,
+          });
         }
         // Merge cloud projection overrides into stock library
         if (data.projections.length > 0) {
@@ -400,15 +433,21 @@ export const usePortfolioStore = create<PortfolioStore>()(
       name: 'portfolio-planner-v5',
       onRehydrateStorage: () => (state) => {
         if (state) {
-          // Persisted data found — mark hydrated and inject Current Portfolio if empty
           state.setHasHydrated(true);
-          if (state.portfolios.length === 0) {
+          // Only inject Current Portfolio once — if there are no portfolios yet
+          const alreadyHasIt = state.portfolios.some((p) => p.name === 'Current Portfolio');
+          if (!alreadyHasIt && !state._currentPortfolioInjected) {
             const currentPortfolio = createCurrentPortfolio(state.stockLibrary);
-            state.portfolios = [currentPortfolio];
-            state.activePortfolioId = currentPortfolio.id;
+            state.portfolios = state.portfolios.length === 0
+              ? [currentPortfolio]
+              : [...state.portfolios, currentPortfolio];
+            if (state.portfolios.length === 1) {
+              state.activePortfolioId = currentPortfolio.id;
+            }
+            state._currentPortfolioInjected = true;
           }
         } else {
-          // No persisted data (fresh key) — just mark hydrated, Home.tsx useEffect will inject Current Portfolio
+          // No persisted data at all — mark hydrated; the injection guard below handles creation
           usePortfolioStore.setState({ _hasHydrated: true });
         }
       },
@@ -416,6 +455,7 @@ export const usePortfolioStore = create<PortfolioStore>()(
         stockLibrary: state.stockLibrary,
         portfolios: state.portfolios,
         activePortfolioId: state.activePortfolioId,
+        _currentPortfolioInjected: state._currentPortfolioInjected,
       }),
       // Merge: always ensure new stocks from SAMPLE_STOCKS are present in the library
       // Also migrate old schema fields to new schema (Revenue→Margin→EPS→P/E model)
@@ -486,6 +526,8 @@ export const usePortfolioStore = create<PortfolioStore>()(
           ...persisted,
           stockLibrary: finalLibrary,
           portfolios: cleanedPortfolios,
+          // Preserve the injection guard flag from persisted state
+          _currentPortfolioInjected: persisted._currentPortfolioInjected ?? false,
         };
       },
     }

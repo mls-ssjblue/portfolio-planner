@@ -103,3 +103,62 @@ describe("setTotalCapital: preserve dollar amounts, recalculate percentages", ()
     expect(result.cashPct).toBeGreaterThanOrEqual(0);
   });
 });
+
+// Pure function mirroring the new addStockToPortfolio logic
+function addStockPreservingAllocations(
+  stocks: Array<{ stockId: string; allocationPct: number }>,
+  cashPct: number,
+  newStockId: string,
+  defaultNewPct = 5
+): { stocks: Array<{ stockId: string; allocationPct: number }>; cashPct: number } {
+  const available = cashPct;
+  const newStockPct = parseFloat(Math.min(defaultNewPct, available).toFixed(2));
+  const newCashPct = parseFloat(Math.max(0, available - newStockPct).toFixed(2));
+  return {
+    stocks: [...stocks, { stockId: newStockId, allocationPct: newStockPct }],
+    cashPct: newCashPct,
+  };
+}
+
+describe("addStockToPortfolio: preserve existing allocations", () => {
+  it("existing positions are unchanged when adding a new stock", () => {
+    const stocks = [
+      { stockId: "AMD", allocationPct: 40 },
+      { stockId: "NVDA", allocationPct: 30 },
+    ];
+    const cashPct = 30;
+
+    const result = addStockPreservingAllocations(stocks, cashPct, "TSLA");
+
+    // Existing positions unchanged
+    expect(result.stocks[0].allocationPct).toBe(40);
+    expect(result.stocks[1].allocationPct).toBe(30);
+    // New stock gets 5%
+    expect(result.stocks[2].stockId).toBe("TSLA");
+    expect(result.stocks[2].allocationPct).toBe(5);
+    // Cash reduced by 5%
+    expect(result.cashPct).toBe(25);
+  });
+
+  it("new stock gets only what cash has if cash < 5%", () => {
+    const stocks = [{ stockId: "AMD", allocationPct: 97 }];
+    const cashPct = 3;
+
+    const result = addStockPreservingAllocations(stocks, cashPct, "TSLA");
+
+    expect(result.stocks[0].allocationPct).toBe(97); // unchanged
+    expect(result.stocks[1].allocationPct).toBe(3);  // capped at available cash
+    expect(result.cashPct).toBe(0);
+  });
+
+  it("new stock gets 0% when no cash available", () => {
+    const stocks = [{ stockId: "AMD", allocationPct: 100 }];
+    const cashPct = 0;
+
+    const result = addStockPreservingAllocations(stocks, cashPct, "TSLA");
+
+    expect(result.stocks[0].allocationPct).toBe(100); // unchanged
+    expect(result.stocks[1].allocationPct).toBe(0);   // no cash to give
+    expect(result.cashPct).toBe(0);
+  });
+});

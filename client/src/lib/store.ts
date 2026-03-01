@@ -261,20 +261,21 @@ export const usePortfolioStore = create<PortfolioStore>()(
         if (!portfolio) return;
         if (portfolio.stocks.find((s) => s.stockId === stockId)) return;
 
-        // Distribute allocations evenly
-        const newCount = portfolio.stocks.length + 1;
-        const evenPct = parseFloat((100 / (newCount + 1)).toFixed(2)); // +1 for cash
+        // Give the new stock a default allocation taken from cash.
+        // Existing positions are NOT touched.
+        const DEFAULT_NEW_PCT = 5;
+        const available = portfolio.cashPct;
+        const newStockPct = parseFloat(Math.min(DEFAULT_NEW_PCT, available).toFixed(2));
+        const newCashPct = parseFloat(Math.max(0, available - newStockPct).toFixed(2));
         const newStocks: PortfolioStock[] = [
-          ...portfolio.stocks.map((s) => ({ ...s, allocationPct: evenPct })),
-          { stockId, allocationPct: evenPct },
+          ...portfolio.stocks,
+          { stockId, allocationPct: newStockPct },
         ];
-        const usedPct = newStocks.reduce((a, b) => a + b.allocationPct, 0);
-        const cashPct = Math.max(0, parseFloat((100 - usedPct).toFixed(2)));
 
         set((s) => ({
           portfolios: s.portfolios.map((p) =>
             p.id === s.activePortfolioId
-              ? { ...p, stocks: newStocks, cashPct, updatedAt: Date.now() }
+              ? { ...p, stocks: newStocks, cashPct: newCashPct, updatedAt: Date.now() }
               : p
           ),
         }));

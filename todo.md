@@ -1,1 +1,2 @@
 - [x] When total capital changes, keep allocation dollar amounts fixed and recalculate percentages (not the other way around)
+- [x] When adding a new stock to portfolio, preserve existing allocations and take the new stock's default allocation from cash

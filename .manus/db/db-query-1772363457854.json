@@ -1,0 +1,9 @@
+{
+  "query": "\nDELETE FROM portfolio_stocks WHERE portfolioId IN (\n  'fHwG7GzwGF-gHH-6RPUCS',\n  'ZkfwvI6UmmIF2WCvsanAQ',\n  '5IYiHLgGR6Gm_r1Rg5dXb',\n  '8e91MhVwNe58hGJXOjwcc',\n  'MCY2rkYSe-Fd4x-zaijot'\n);\nDELETE FROM portfolios WHERE id IN (\n  'fHwG7GzwGF-gHH-6RPUCS',\n  'ZkfwvI6UmmIF2WCvsanAQ',\n  '5IYiHLgGR6Gm_r1Rg5dXb',\n  '8e91MhVwNe58hGJXOjwcc',\n  'MCY2rkYSe-Fd4x-zaijot'\n);\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 39WtxQTQZUKe41R.root --database jkQ9xJrmBM27yUbTi7dGC8 --execute \nDELETE FROM portfolio_stocks WHERE portfolioId IN (\n  'fHwG7GzwGF-gHH-6RPUCS',\n  'ZkfwvI6UmmIF2WCvsanAQ',\n  '5IYiHLgGR6Gm_r1Rg5dXb',\n  '8e91MhVwNe58hGJXOjwcc',\n  'MCY2rkYSe-Fd4x-zaijot'\n);\nDELETE FROM portfolios WHERE id IN (\n  'fHwG7GzwGF-gHH-6RPUCS',\n  'ZkfwvI6UmmIF2WCvsanAQ',\n  '5IYiHLgGR6Gm_r1Rg5dXb',\n  '8e91MhVwNe58hGJXOjwcc',\n  'MCY2rkYSe-Fd4x-zaijot'\n);\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1917
+}

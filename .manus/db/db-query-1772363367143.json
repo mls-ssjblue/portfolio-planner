@@ -1,0 +1,52 @@
+{
+  "query": "SELECT id, name, userId, createdAt FROM portfolios ORDER BY userId, name, createdAt;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 39WtxQTQZUKe41R.root --database jkQ9xJrmBM27yUbTi7dGC8 --execute SELECT id, name, userId, createdAt FROM portfolios ORDER BY userId, name, createdAt;",
+  "rows": [
+    {
+      "id": "5IYiHLgGR6Gm_r1Rg5dXb",
+      "name": "Current Portfolio",
+      "userId": "1",
+      "createdAt": "2026-03-01 06:35:43"
+    },
+    {
+      "id": "8e91MhVwNe58hGJXOjwcc",
+      "name": "Current Portfolio",
+      "userId": "1",
+      "createdAt": "2026-03-01 06:35:43"
+    },
+    {
+      "id": "MCY2rkYSe-Fd4x-zaijot",
+      "name": "Current Portfolio",
+      "userId": "1",
+      "createdAt": "2026-03-01 06:45:13"
+    },
+    {
+      "id": "YCOgcAYRi5SK_oRpQInyM",
+      "name": "Current Portfolio - latest",
+      "userId": "1",
+      "createdAt": "2026-03-01 06:45:13"
+    },
+    {
+      "id": "fHwG7GzwGF-gHH-6RPUCS",
+      "name": "My Portfolio",
+      "userId": "1",
+      "createdAt": "2026-03-01 06:32:10"
+    },
+    {
+      "id": "ZkfwvI6UmmIF2WCvsanAQ",
+      "name": "My Portfolio",
+      "userId": "1",
+      "createdAt": "2026-03-01 06:32:11"
+    },
+    {
+      "id": "vYgsF1CiBifoazkCGrWkU",
+      "name": "Portfolio A",
+      "userId": "1",
+      "createdAt": "2026-03-01 08:34:06"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tuserId\tcreatedAt\n5IYiHLgGR6Gm_r1Rg5dXb\tCurrent Portfolio\t1\t2026-03-01 06:35:43\n8e91MhVwNe58hGJXOjwcc\tCurrent Portfolio\t1\t2026-03-01 06:35:43\nMCY2rkYSe-Fd4x-zaijot\tCurrent Portfolio\t1\t2026-03-01 06:45:13\nYCOgcAYRi5SK_oRpQInyM\tCurrent Portfolio - latest\t1\t2026-03-01 06:45:13\nfHwG7GzwGF-gHH-6RPUCS\tMy Portfolio\t1\t2026-03-01 06:32:10\nZkfwvI6UmmIF2WCvsanAQ\tMy Portfolio\t1\t2026-03-01 06:32:11\nvYgsF1CiBifoazkCGrWkU\tPortfolio A\t1\t2026-03-01 08:34:06\n",
+  "stderr": "",
+  "execution_time_ms": 1587
+}

@@ -160,6 +160,23 @@ export async function deletePortfolio(portfolioId: string, userId: number) {
     .where(and(eq(portfolios.id, portfolioId), eq(portfolios.userId, userId)));
 }
 
+/**
+ * Delete all portfolios for a user that are NOT in the provided keepIds list.
+ * Used by pushPortfolios to ensure the DB matches the client's current state exactly.
+ */
+export async function deletePortfoliosNotInList(userId: number, keepIds: string[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const existing = await db.select({ id: portfolios.id })
+    .from(portfolios)
+    .where(eq(portfolios.userId, userId));
+  const toDelete = existing.map((p) => p.id).filter((id) => !keepIds.includes(id));
+  if (toDelete.length > 0) {
+    await db.delete(portfolios)
+      .where(and(eq(portfolios.userId, userId), inArray(portfolios.id, toDelete)));
+  }
+}
+
 export async function replacePortfolioStocks(
   portfolioId: string,
   stocks: { stockId: string; allocationPct: number; sortOrder: number }[]

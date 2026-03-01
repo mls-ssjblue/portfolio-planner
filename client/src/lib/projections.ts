@@ -7,46 +7,22 @@ import type { ScenarioProjection, Stock, StockProjections } from './types';
 export type Scenario = 'bear' | 'base' | 'bull';
 
 /**
- * Derive the implied net income growth rate from revenue growth and margin assumptions.
- * Formula: impliedNIGrowth = (1 + revenueGrowthRate/100) × (exitNetMarginPct / currentNetMarginPct) - 1
- * This is the single-year equivalent that, when compounded, produces the same N-year NI trajectory
- * as growing revenue at revenueGrowthRate and exiting at exitNetMarginPct.
- *
- * @param revenueGrowthRate  Annual revenue growth rate % (e.g. 15 = 15%)
- * @param exitNetMarginPct   Net margin at exit year % (e.g. 20 = 20%)
- * @param currentNetMarginPct Current net margin % (e.g. 15 = 15%)
- * @returns Annualised NI growth rate % rounded to 1 decimal
- */
-export function deriveNIGrowthRate(
-  revenueGrowthRate: number,
-  exitNetMarginPct: number,
-  currentNetMarginPct: number
-): number {
-  if (currentNetMarginPct <= 0) {
-    // If currently unprofitable, fall back to revenue growth as proxy
-    return Math.round(revenueGrowthRate * 10) / 10;
-  }
-  const implied = (1 + revenueGrowthRate / 100) * (exitNetMarginPct / currentNetMarginPct) - 1;
-  return Math.round(implied * 1000) / 10; // convert to % with 1 decimal
-}
-
-/**
  * Calculate the implied target price for a stock in a given scenario after N years.
  *
- * Primary method (P/E):
- *   Future Revenue = currentRevenueB × (1 + revenueGrowthRate/100)^N  [in $B]
- *   Future Net Income = Future Revenue × (netMarginPct/100)             [in $B]
- *   Future EPS = Future Net Income / currentSharesB                     [$/share]
- *   Target Price = Future EPS × peMultiple
+ * EPS method (default):
+ *   Future Net Income = currentNetIncomeB × (1 + netIncomeGrowthRate/100)^N
+ *   Future EPS        = Future Net Income / currentSharesB
+ *   Target Price      = Future EPS × peMultiple
+ *   If peMultipleLow/High provided, returns midpoint; use calcTargetPriceRange for bounds.
  *
- * Alternative P/S method:
- *   Revenue Per Share = Future Revenue / currentSharesB
- *   Target Price = Revenue Per Share × psMultiple
+ * Revenue P/E method:
+ *   Future Revenue    = currentRevenueB × (1 + revenueGrowthRate/100)^N
+ *   Future Net Income = Future Revenue × (netMarginPct/100)
+ *   Future EPS        = Future Net Income / currentSharesB
+ *   Target Price      = Future EPS × peMultiple
  *
- * Alternative P/FCF method:
- *   Future FCF = Future Revenue × (fcfMarginPct/100)
- *   FCF Per Share = Future FCF / currentSharesB
- *   Target Price = FCF Per Share × fcfMultiple
+ * P/S method:  (Future Revenue / shares) × psMultiple
+ * P/FCF method: (Future FCF / shares) × fcfMultiple
  */
 export function calcTargetPrice(
   proj: ScenarioProjection,
@@ -58,15 +34,15 @@ export function calcTargetPrice(
   // Guard: need shares outstanding
   const shares = currentSharesB > 0 ? currentSharesB : 1;
 
-  // Future revenue in $B
+  // Future revenue in $B (used by pe/ps/fcf methods)
   const futureRevenueB = currentRevenueB * Math.pow(1 + proj.revenueGrowthRate / 100, years);
 
-  // EPS method (default): Net Income grows at netIncomeGrowthRate → EPS → Price
+  // EPS method: Net Income grows at netIncomeGrowthRate directly → EPS → Price
   // Uses midpoint of P/E range if both low and high are provided.
   const calcEPS = (): number => {
     const futureNetIncomeB = currentNetIncomeB * Math.pow(1 + proj.netIncomeGrowthRate / 100, years);
     if (futureNetIncomeB <= 0) return 0;
-    const futureEPS = futureNetIncomeB / shares; // both in $B / B shares = $/share
+    const futureEPS = futureNetIncomeB / shares; // both in billions → $/share
     const effectivePE = (proj.peMultipleLow != null && proj.peMultipleHigh != null)
       ? (proj.peMultipleLow + proj.peMultipleHigh) / 2
       : proj.peMultiple;
@@ -108,6 +84,7 @@ export function calcTargetPrice(
   if (valuationMethod === 'eps') {
     const result = calcEPS();
     if (result > 0) return result;
+    // Fallback chain
     const peResult = calcPE();
     if (peResult > 0) return peResult;
     const psResult = calcPS();

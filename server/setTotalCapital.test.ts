@@ -162,3 +162,66 @@ describe("addStockToPortfolio: preserve existing allocations", () => {
     expect(result.cashPct).toBe(0);
   });
 });
+
+// Pure function mirroring the new removeStockFromPortfolio logic
+function removeStockReturningToCash(
+  stocks: Array<{ stockId: string; allocationPct: number }>,
+  cashPct: number,
+  stockIdToRemove: string
+): { stocks: Array<{ stockId: string; allocationPct: number }>; cashPct: number } {
+  const removedStock = stocks.find((s) => s.stockId === stockIdToRemove);
+  const freedPct = removedStock?.allocationPct ?? 0;
+  const newStocks = stocks.filter((s) => s.stockId !== stockIdToRemove);
+  const newCashPct = parseFloat(Math.min(100, cashPct + freedPct).toFixed(4));
+  return { stocks: newStocks, cashPct: newCashPct };
+}
+
+describe("removeStockFromPortfolio: freed allocation returns to cash", () => {
+  it("removing a stock adds its allocation back to cash", () => {
+    const stocks = [
+      { stockId: "AMD", allocationPct: 40 },
+      { stockId: "NVDA", allocationPct: 30 },
+    ];
+    const cashPct = 30;
+
+    const result = removeStockReturningToCash(stocks, cashPct, "AMD");
+
+    expect(result.stocks).toHaveLength(1);
+    expect(result.stocks[0].stockId).toBe("NVDA");
+    expect(result.stocks[0].allocationPct).toBe(30); // unchanged
+    expect(result.cashPct).toBe(70); // 30 cash + 40 freed
+  });
+
+  it("removing a stock when cash is 0 gives cash = freed amount", () => {
+    const stocks = [
+      { stockId: "AMD", allocationPct: 60 },
+      { stockId: "NVDA", allocationPct: 40 },
+    ];
+    const cashPct = 0;
+
+    const result = removeStockReturningToCash(stocks, cashPct, "NVDA");
+
+    expect(result.cashPct).toBe(40);
+    expect(result.stocks).toHaveLength(1);
+  });
+
+  it("cash never exceeds 100 even if allocations are over-allocated", () => {
+    const stocks = [{ stockId: "AMD", allocationPct: 80 }];
+    const cashPct = 30; // already over 100 total
+
+    const result = removeStockReturningToCash(stocks, cashPct, "AMD");
+
+    expect(result.cashPct).toBe(100); // capped at 100
+    expect(result.stocks).toHaveLength(0);
+  });
+
+  it("removing a non-existent stock leaves everything unchanged", () => {
+    const stocks = [{ stockId: "AMD", allocationPct: 50 }];
+    const cashPct = 50;
+
+    const result = removeStockReturningToCash(stocks, cashPct, "TSLA");
+
+    expect(result.stocks).toHaveLength(1);
+    expect(result.cashPct).toBe(50); // no change
+  });
+});

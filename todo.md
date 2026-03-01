@@ -2,3 +2,6 @@
 - [x] When adding a new stock to portfolio, preserve existing allocations and take the new stock's default allocation from cash
 - [x] Prevent duplicate "Current Portfolio" creation on refresh or login
 - [x] Always sort portfolio stocks by dollar allocation, highest to lowest
+- [x] Remove stock returns freed allocation percentage back to cash
+- [x] Price vs. target upside/downside badge on each portfolio row
+- [x] Live re-sort after slider changes (list re-orders as allocations change)

@@ -23,7 +23,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { usePortfolioStore } from '@/lib/store';
 import type { PortfolioStock } from '@/lib/types';
 import { INDUSTRY_COLORS } from '@/lib/types';
-import { formatCurrency } from '@/lib/projections';
+import { formatCurrency, calcTargetPrice } from '@/lib/projections';
 import { exportPortfolioCSV } from '@/lib/exportUtils';
 import { toast } from 'sonner';
 
@@ -95,6 +95,13 @@ function SortableStockRow({
   const color = INDUSTRY_COLORS[stock.industry];
   const dollarValue = (portfolioStock.allocationPct / 100) * totalCapital;
 
+  // Compute base-case upside vs current price (using 5-year horizon)
+  const currentPrice = stock.projections.currentPrice;
+  const baseTargetPrice = calcTargetPrice(stock.projections.base, stock.projections, 5);
+  const upsidePct = currentPrice > 0 && baseTargetPrice > 0
+    ? ((baseTargetPrice - currentPrice) / currentPrice) * 100
+    : null;
+
   const handleSliderChange = (val: number[]) => {
     const pct = val[0];
     setLocalPct(pct);
@@ -156,6 +163,20 @@ function SortableStockRow({
           </div>
           <p className="text-[10px] text-muted-foreground truncate">{stock.name}</p>
         </div>
+
+        {/* Upside / downside badge */}
+        {upsidePct !== null && (
+          <div
+            className={`shrink-0 text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded ${
+              upsidePct >= 0
+                ? 'bg-emerald-500/15 text-emerald-400'
+                : 'bg-red-500/15 text-red-400'
+            }`}
+            title={`Base-case target $${baseTargetPrice.toFixed(0)} vs current $${currentPrice.toFixed(0)}`}
+          >
+            {upsidePct >= 0 ? '+' : ''}{upsidePct.toFixed(0)}%
+          </div>
+        )}
 
         {/* Allocation input */}
         <div className="shrink-0 flex items-center gap-1.5">

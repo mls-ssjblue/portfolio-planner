@@ -307,16 +307,18 @@ export const usePortfolioStore = create<PortfolioStore>()(
           (p) => p.id === state.activePortfolioId
         );
         if (!portfolio) return;
+        // Find the removed stock's allocation and return it to cash
+        const removedStock = portfolio.stocks.find((s) => s.stockId === stockId);
+        const freedPct = removedStock?.allocationPct ?? 0;
         const newStocks = portfolio.stocks.filter(
           (s) => s.stockId !== stockId
         );
-        const usedPct = newStocks.reduce((a, b) => a + b.allocationPct, 0);
-        const cashPct = Math.max(0, parseFloat((100 - usedPct).toFixed(2)));
+        const newCashPct = parseFloat(Math.min(100, portfolio.cashPct + freedPct).toFixed(4));
 
         set((s) => ({
           portfolios: s.portfolios.map((p) =>
             p.id === s.activePortfolioId
-              ? { ...p, stocks: newStocks, cashPct, updatedAt: Date.now() }
+              ? { ...p, stocks: newStocks, cashPct: newCashPct, updatedAt: Date.now() }
               : p
           ),
         }));

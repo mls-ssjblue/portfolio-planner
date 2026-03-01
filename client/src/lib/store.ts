@@ -76,6 +76,56 @@ function createDefaultPortfolio(name: string): Portfolio {
   };
 }
 
+// Pre-built "Current Portfolio" based on real holdings (market values as of Mar 2026)
+// Allocations are derived from market value weights (total ~$500,891)
+const CURRENT_PORTFOLIO_HOLDINGS: Array<{ ticker: string; allocationPct: number }> = [
+  { ticker: 'AMD',   allocationPct: 42.27 },
+  { ticker: 'NVDA',  allocationPct: 11.89 },
+  { ticker: 'MU',    allocationPct:  9.01 },
+  { ticker: 'HIMS',  allocationPct:  7.26 },
+  { ticker: 'GOOGL', allocationPct:  5.26 },
+  { ticker: 'ELF',   allocationPct:  3.23 },
+  { ticker: 'TLN',   allocationPct:  3.18 },
+  { ticker: 'LEU',   allocationPct:  2.89 },
+  { ticker: 'CLS',   allocationPct:  2.37 },
+  { ticker: 'AMZN',  allocationPct:  2.10 },
+  { ticker: 'HNST',  allocationPct:  1.69 },
+  { ticker: 'IONQ',  allocationPct:  1.66 },
+  { ticker: 'NU',    allocationPct:  1.62 },
+  { ticker: 'FUBO',  allocationPct:  1.33 },
+  { ticker: 'CEG',   allocationPct:  0.98 },
+  { ticker: 'IREN',  allocationPct:  0.98 },
+  { ticker: 'PLTR',  allocationPct:  0.80 },
+  { ticker: 'SOFI',  allocationPct:  0.71 },
+  { ticker: 'MSFT',  allocationPct:  0.39 },
+  { ticker: 'GRRR',  allocationPct:  0.31 },
+  { ticker: 'SMCI',  allocationPct:  0.06 },
+];
+
+function createCurrentPortfolio(library: Stock[]): Portfolio {
+  const id = nanoid();
+  const tickerToId = new Map(library.map((s) => [s.ticker, s.id]));
+  const stocks: PortfolioStock[] = CURRENT_PORTFOLIO_HOLDINGS
+    .filter((h) => tickerToId.has(h.ticker))
+    .map((h, i) => ({
+      stockId: tickerToId.get(h.ticker)!,
+      allocationPct: h.allocationPct,
+      sortOrder: i,
+    }));
+  const totalAllocated = stocks.reduce((sum, s) => sum + s.allocationPct, 0);
+  return {
+    id,
+    name: 'Current Portfolio',
+    totalCapital: 500891,
+    allocationMode: 'percentage',
+    stocks,
+    cashPct: Math.max(0, 100 - totalAllocated),
+    projectionYears: 5,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+}
+
 export const usePortfolioStore = create<PortfolioStore>()(
   persist(
     (set, get) => ({
@@ -328,22 +378,11 @@ export const usePortfolioStore = create<PortfolioStore>()(
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.setHasHydrated(true);
-          // Only create a default portfolio if none were persisted
+          // Only create the pre-built Current Portfolio if none were persisted
           if (state.portfolios.length === 0) {
-            const id = nanoid();
-            const defaultPortfolio = {
-              id,
-              name: 'My Portfolio',
-              totalCapital: 100000,
-              allocationMode: 'percentage' as const,
-              stocks: [],
-              cashPct: 100,
-              projectionYears: 5,
-              createdAt: Date.now(),
-              updatedAt: Date.now(),
-            };
-            state.portfolios = [defaultPortfolio];
-            state.activePortfolioId = id;
+            const currentPortfolio = createCurrentPortfolio(state.stockLibrary);
+            state.portfolios = [currentPortfolio];
+            state.activePortfolioId = currentPortfolio.id;
           }
         }
       },

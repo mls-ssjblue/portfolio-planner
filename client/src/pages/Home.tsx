@@ -21,6 +21,7 @@ import StockLibrary from '@/components/StockLibrary';
 import PortfolioManager from '@/components/PortfolioManager';
 import AnalyticsPanel from '@/components/AnalyticsPanel';
 import ProjectionDrawer from '@/components/ProjectionDrawer';
+import { nanoid } from 'nanoid';
 import { usePortfolioStore } from '@/lib/store';
 import { TrendingUp, BookOpen, BarChart3, PieChart, X, Cloud, CloudOff, LogIn, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -48,10 +49,55 @@ export default function Home() {
   const [mobileTab, setMobileTab] = useState<MobileTab>('portfolio');
   const stockLibrary = usePortfolioStore((s) => s.stockLibrary);
 
-  // Create default portfolio only after hydration confirms no saved portfolios exist
+  // After hydration, if there are no portfolios (or only a blank placeholder), inject Current Portfolio
+  const stockLibraryForInit = usePortfolioStore((s) => s.stockLibrary);
   useEffect(() => {
-    if (hasHydrated && portfolios.length === 0) {
-      createPortfolio('My Portfolio');
+    if (!hasHydrated) return;
+    const isBlank = portfolios.length === 0 ||
+      (portfolios.length === 1 && portfolios[0].stocks.length === 0 && portfolios[0].name === 'My Portfolio');
+    if (isBlank) {
+      // Build Current Portfolio from the live stock library
+      const HOLDINGS = [
+        { ticker: 'AMD',   allocationPct: 42.27 },
+        { ticker: 'NVDA',  allocationPct: 11.89 },
+        { ticker: 'MU',    allocationPct:  9.01 },
+        { ticker: 'HIMS',  allocationPct:  7.26 },
+        { ticker: 'GOOGL', allocationPct:  5.26 },
+        { ticker: 'ELF',   allocationPct:  3.23 },
+        { ticker: 'TLN',   allocationPct:  3.18 },
+        { ticker: 'LEU',   allocationPct:  2.89 },
+        { ticker: 'CLS',   allocationPct:  2.37 },
+        { ticker: 'AMZN',  allocationPct:  2.10 },
+        { ticker: 'HNST',  allocationPct:  1.69 },
+        { ticker: 'IONQ',  allocationPct:  1.66 },
+        { ticker: 'NU',    allocationPct:  1.62 },
+        { ticker: 'FUBO',  allocationPct:  1.33 },
+        { ticker: 'CEG',   allocationPct:  0.98 },
+        { ticker: 'IREN',  allocationPct:  0.98 },
+        { ticker: 'PLTR',  allocationPct:  0.80 },
+        { ticker: 'SOFI',  allocationPct:  0.71 },
+        { ticker: 'MSFT',  allocationPct:  0.39 },
+        { ticker: 'GRRR',  allocationPct:  0.31 },
+        { ticker: 'SMCI',  allocationPct:  0.06 },
+      ];
+      const tickerToId = new Map(stockLibraryForInit.map((s) => [s.ticker, s.id]));
+      const stocks = HOLDINGS
+        .filter((h) => tickerToId.has(h.ticker))
+        .map((h, i) => ({ stockId: tickerToId.get(h.ticker)!, allocationPct: h.allocationPct, sortOrder: i }));
+      const totalAllocated = stocks.reduce((sum, s) => sum + s.allocationPct, 0);
+      const id = nanoid();
+      const currentPortfolio = {
+        id,
+        name: 'Current Portfolio',
+        totalCapital: 500891,
+        allocationMode: 'percentage' as const,
+        stocks,
+        cashPct: Math.max(0, 100 - totalAllocated),
+        projectionYears: 5,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      usePortfolioStore.setState({ portfolios: [currentPortfolio], activePortfolioId: id });
     }
   }, [hasHydrated]);
 

@@ -1,0 +1,38 @@
+{
+  "query": "SELECT p.id, p.name, p.totalCapital, p.cashPct, (SELECT COUNT(*) FROM portfolio_stocks ps WHERE ps.portfolioId = p.id) as stock_count FROM portfolios p ORDER BY p.createdAt;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 39WtxQTQZUKe41R.root --database jkQ9xJrmBM27yUbTi7dGC8 --execute SELECT p.id, p.name, p.totalCapital, p.cashPct, (SELECT COUNT(*) FROM portfolio_stocks ps WHERE ps.portfolioId = p.id) as stock_count FROM portfolios p ORDER BY p.createdAt;",
+  "rows": [
+    {
+      "id": "YCOgcAYRi5SK_oRpQInyM",
+      "name": "Current Portfolio - latest",
+      "totalCapital": "707946",
+      "cashPct": "8.7",
+      "stock_count": "0"
+    },
+    {
+      "id": "vYgsF1CiBifoazkCGrWkU",
+      "name": "Portfolio A",
+      "totalCapital": "776247",
+      "cashPct": "16.5",
+      "stock_count": "0"
+    },
+    {
+      "id": "zAUNpZbZO6Ai_rhRbQpcp",
+      "name": "Portfolio A (Copy)",
+      "totalCapital": "776247",
+      "cashPct": "16.5",
+      "stock_count": "0"
+    },
+    {
+      "id": "5IYiHLgGR6Gm_r1Rg5dXb",
+      "name": "Current Portfolio",
+      "totalCapital": "500891",
+      "cashPct": "0.009999999999976694",
+      "stock_count": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\ttotalCapital\tcashPct\tstock_count\nYCOgcAYRi5SK_oRpQInyM\tCurrent Portfolio - latest\t707946\t8.7\t0\nvYgsF1CiBifoazkCGrWkU\tPortfolio A\t776247\t16.5\t0\nzAUNpZbZO6Ai_rhRbQpcp\tPortfolio A (Copy)\t776247\t16.5\t0\n5IYiHLgGR6Gm_r1Rg5dXb\tCurrent Portfolio\t500891\t0.009999999999976694\t0\n",
+  "stderr": "",
+  "execution_time_ms": 1520
+}

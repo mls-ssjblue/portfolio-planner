@@ -165,15 +165,19 @@ export default function Home() {
           </div>
         </header>
 
-        {/* ── Desktop Layout (md+): Two resizable panels; Analytics is a tab inside the right panel ── */}
+        {/* ── Desktop Layout (md+): Three resizable panels ── */}
         <div className={`hidden md:flex flex-1 overflow-hidden transition-all duration-300 ${projectionDrawerOpen ? 'mr-[480px]' : ''}`}>
           <ResizablePanelGroup direction="horizontal" className="h-full">
             <ResizablePanel defaultSize={18} minSize={14} maxSize={28}>
               <StockLibrary />
             </ResizablePanel>
             <ResizableHandle className="w-px bg-[oklch(1_0_0/8%)] hover:bg-[oklch(0.75_0.12_75/40%)] transition-colors" />
-            <ResizablePanel defaultSize={82} minSize={50}>
-              <PortfolioManagerWithAnalytics />
+            <ResizablePanel defaultSize={45} minSize={30}>
+              <PortfolioManager />
+            </ResizablePanel>
+            <ResizableHandle className="w-px bg-[oklch(1_0_0/8%)] hover:bg-[oklch(0.75_0.12_75/40%)] transition-colors" />
+            <ResizablePanel defaultSize={37} minSize={25}>
+              <AnalyticsPanel />
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>
@@ -363,46 +367,6 @@ function SyncStatus({ isAuthenticated, authLoading, isSyncing }: {
           <span className="hidden sm:block text-[10px] text-[oklch(0.65_0.1_145)]">Synced</span>
         </>
       )}
-    </div>
-  );
-}
-
-// ── Desktop: Portfolio + Analytics as tabs ───────────────────────────────────
-function PortfolioManagerWithAnalytics() {
-  const [activeTab, setActiveTab] = useState<'portfolio' | 'analytics'>('portfolio');
-
-  return (
-    <div className="flex flex-col h-full overflow-hidden">
-      {/* Tab bar */}
-      <div className="flex shrink-0 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.13_0.04_255/80%)]">
-        <button
-          onClick={() => setActiveTab('portfolio')}
-          className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
-            activeTab === 'portfolio'
-              ? 'border-[oklch(0.75_0.12_75)] text-[oklch(0.75_0.12_75)]'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <BarChart3 className="w-3.5 h-3.5" />
-          Portfolio
-        </button>
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
-            activeTab === 'analytics'
-              ? 'border-[oklch(0.75_0.12_75)] text-[oklch(0.75_0.12_75)]'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <PieChart className="w-3.5 h-3.5" />
-          Analytics
-        </button>
-      </div>
-
-      {/* Tab content */}
-      <div className="flex-1 overflow-hidden">
-        {activeTab === 'portfolio' ? <PortfolioManager /> : <AnalyticsPanel />}
-      </div>
     </div>
   );
 }

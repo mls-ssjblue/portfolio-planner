@@ -5,12 +5,5 @@
 - [x] Remove stock returns freed allocation percentage back to cash
 - [x] Price vs. target upside/downside badge on each portfolio row
 - [x] Live re-sort after slider changes (list re-orders as allocations change)
-- [x] Copy Portfolio: duplicate active portfolio with all stocks, allocations, and settings
-- [x] Fix duplicate portfolios appearing on each page refresh
-- [x] Clean up DB: keep only "Current portfolio - latest" and "Portfolio A"
-- [x] Debounce portfolio sort: re-order only 1 second after slider is released, not during dragging
-- [x] Prevent sliders from changing values while scrolling (block wheel events on all sliders)
-- [x] Slider requires press-and-hold (200ms) before activating; reduce visual size of slider area
-- [x] Add EPS valuation method: net income growth rate → EPS → P/E target price, make it default
-- [x] Support P/E range (low/high) in ScenarioProjection and projection drawer UI
-- [x] Convert Analytics panel from always-visible right column to a tab in the main layout
+- [x] Auto-derive netIncomeGrowthRate as one-time default from revenueGrowthRate + netMarginPct per scenario
+- [x] Show "Auto" badge on NI growth input; clear it when user manually edits

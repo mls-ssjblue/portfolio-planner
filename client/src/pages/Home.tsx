@@ -51,8 +51,22 @@ export default function Home() {
 
   // After hydration, inject Current Portfolio if it doesn't already exist
   const stockLibraryForInit = usePortfolioStore((s) => s.stockLibrary);
+  const setHasHydrated = usePortfolioStore((s) => s.setHasHydrated);
+
+  // Fallback: if no persisted data exists, onRehydrateStorage fires before React mounts
+  // so _hasHydrated never transitions. Force it after 50ms.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!usePortfolioStore.getState()._hasHydrated) {
+        setHasHydrated(true);
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     if (!hasHydrated) return;
+    if (stockLibraryForInit.length === 0) return; // Wait for library to load
     const alreadyExists = portfolios.some((p) => p.name === 'Current Portfolio');
     if (!alreadyExists) {
       // Build Current Portfolio from the live stock library
@@ -101,7 +115,7 @@ export default function Home() {
         activePortfolioId: id,
       }));
     }
-  }, [hasHydrated]);
+  }, [hasHydrated, stockLibraryForInit.length]);
 
   // Sensors: require 8px movement before drag starts (prevents accidental drags on click)
   const sensors = useSensors(

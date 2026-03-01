@@ -134,6 +134,9 @@ export const usePortfolioStore = create<PortfolioStore>()(
       activePortfolioId: null,
       selectedStockId: null,
       projectionDrawerOpen: false,
+      // _hasHydrated starts false; onRehydrateStorage sets it true after localStorage is read.
+      // When there's no persisted data (null state), we use a useEffect in Home.tsx that
+      // checks if portfolios is empty after a small delay.
       _hasHydrated: false,
       setHasHydrated: (v) => set({ _hasHydrated: v }),
 
@@ -374,16 +377,19 @@ export const usePortfolioStore = create<PortfolioStore>()(
       setProjectionDrawerOpen: (open) => set({ projectionDrawerOpen: open }),
     }),
     {
-      name: 'portfolio-planner-v3',
+      name: 'portfolio-planner-v5',
       onRehydrateStorage: () => (state) => {
         if (state) {
+          // Persisted data found — mark hydrated and inject Current Portfolio if empty
           state.setHasHydrated(true);
-          // Only create the pre-built Current Portfolio if none were persisted
           if (state.portfolios.length === 0) {
             const currentPortfolio = createCurrentPortfolio(state.stockLibrary);
             state.portfolios = [currentPortfolio];
             state.activePortfolioId = currentPortfolio.id;
           }
+        } else {
+          // No persisted data (fresh key) — just mark hydrated, Home.tsx useEffect will inject Current Portfolio
+          usePortfolioStore.setState({ _hasHydrated: true });
         }
       },
       partialize: (state) => ({

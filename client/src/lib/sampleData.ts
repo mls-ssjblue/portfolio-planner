@@ -2,7 +2,6 @@
 // Auto-generated from Yahoo Finance live data (Feb 2026)
 // Projection model: Revenue → Net Margin → EPS → P/E → Target Price
 
-import { nanoid } from 'nanoid';
 import type { Stock } from './types';
 import { DEFAULT_PROJECTIONS } from './types';
 
@@ -10,7 +9,7 @@ export { DEFAULT_PROJECTIONS };
 
 export const SAMPLE_STOCKS: Stock[] = [
   {
-    id: nanoid(),
+    id: 'AAPL',
     ticker: 'AAPL',
     name: 'Apple',
     industry: 'Technology',
@@ -39,7 +38,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'ADBE',
     ticker: 'ADBE',
     name: 'Adobe',
     industry: 'Technology',
@@ -68,7 +67,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'AFRM',
     ticker: 'AFRM',
     name: 'Affirm',
     industry: 'Financials',
@@ -97,7 +96,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'AMD',
     ticker: 'AMD',
     name: 'AMD',
     industry: 'Technology',
@@ -126,7 +125,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'AMZN',
     ticker: 'AMZN',
     name: 'Amazon',
     industry: 'Consumer Discretionary',
@@ -155,7 +154,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'ARM',
     ticker: 'ARM',
     name: 'Arm Holdings',
     industry: 'Technology',
@@ -184,7 +183,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'ASML',
     ticker: 'ASML',
     name: 'ASML',
     industry: 'Technology',
@@ -213,7 +212,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'ASTS',
     ticker: 'ASTS',
     name: 'AST SpaceMobile',
     industry: 'Communication Services',
@@ -242,7 +241,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'BAC',
     ticker: 'BAC',
     name: 'Bank of America',
     industry: 'Financials',
@@ -271,7 +270,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'CAVA',
     ticker: 'CAVA',
     name: 'CAVA Group',
     industry: 'Consumer Discretionary',
@@ -300,7 +299,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'CEG',
     ticker: 'CEG',
     name: 'Constellation Energy',
     industry: 'Utilities',
@@ -329,7 +328,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'CELH',
     ticker: 'CELH',
     name: 'Celsius',
     industry: 'Consumer Staples',
@@ -358,7 +357,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'CLS',
     ticker: 'CLS',
     name: 'Celestica',
     industry: 'Technology',
@@ -387,7 +386,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'COIN',
     ticker: 'COIN',
     name: 'Coinbase',
     industry: 'Financials',
@@ -416,7 +415,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'COST',
     ticker: 'COST',
     name: 'Costco',
     industry: 'Consumer Staples',
@@ -445,7 +444,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'CRM',
     ticker: 'CRM',
     name: 'Salesforce',
     industry: 'Technology',
@@ -474,7 +473,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'CRWD',
     ticker: 'CRWD',
     name: 'CrowdStrike',
     industry: 'Technology',
@@ -503,7 +502,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'DIS',
     ticker: 'DIS',
     name: 'Disney',
     industry: 'Communication Services',
@@ -532,7 +531,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'DKNG',
     ticker: 'DKNG',
     name: 'DraftKings',
     industry: 'Consumer Discretionary',
@@ -561,7 +560,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'ELF',
     ticker: 'ELF',
     name: 'e.l.f. Beauty',
     industry: 'Consumer Staples',
@@ -590,7 +589,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'FUBO',
     ticker: 'FUBO',
     name: 'FuboTV',
     industry: 'Communication Services',
@@ -619,7 +618,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'GOOGL',
     ticker: 'GOOGL',
     name: 'Alphabet',
     industry: 'Communication Services',
@@ -648,7 +647,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'GRRR',
     ticker: 'GRRR',
     name: 'Gorilla Technology',
     industry: 'Technology',
@@ -677,7 +676,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'GS',
     ticker: 'GS',
     name: 'Goldman Sachs',
     industry: 'Financials',
@@ -706,7 +705,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'HD',
     ticker: 'HD',
     name: 'Home Depot',
     industry: 'Consumer Discretionary',
@@ -735,7 +734,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'HIMS',
     ticker: 'HIMS',
     name: 'Hims & Hers',
     industry: 'Healthcare',
@@ -764,7 +763,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'HNST',
     ticker: 'HNST',
     name: 'The Honest Co.',
     industry: 'Consumer Staples',
@@ -793,7 +792,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'HOOD',
     ticker: 'HOOD',
     name: 'Robinhood',
     industry: 'Financials',
@@ -822,7 +821,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'INTC',
     ticker: 'INTC',
     name: 'Intel',
     industry: 'Technology',
@@ -851,7 +850,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'IONQ',
     ticker: 'IONQ',
     name: 'IonQ',
     industry: 'Technology',
@@ -880,7 +879,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'JNJ',
     ticker: 'JNJ',
     name: 'Johnson & Johnson',
     industry: 'Healthcare',
@@ -909,7 +908,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'JPM',
     ticker: 'JPM',
     name: 'JPMorgan Chase',
     industry: 'Financials',
@@ -938,7 +937,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'LEU',
     ticker: 'LEU',
     name: 'Centrus Energy',
     industry: 'Energy',
@@ -967,7 +966,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'MA',
     ticker: 'MA',
     name: 'Mastercard',
     industry: 'Financials',
@@ -996,7 +995,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'META',
     ticker: 'META',
     name: 'Meta',
     industry: 'Communication Services',
@@ -1025,7 +1024,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'MSFT',
     ticker: 'MSFT',
     name: 'Microsoft',
     industry: 'Technology',
@@ -1054,7 +1053,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'MSTR',
     ticker: 'MSTR',
     name: 'MicroStrategy',
     industry: 'Technology',
@@ -1083,7 +1082,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'NFLX',
     ticker: 'NFLX',
     name: 'Netflix',
     industry: 'Communication Services',
@@ -1112,7 +1111,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'NU',
     ticker: 'NU',
     name: 'Nu Holdings',
     industry: 'Financials',
@@ -1141,7 +1140,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'NVDA',
     ticker: 'NVDA',
     name: 'NVIDIA',
     industry: 'Technology',
@@ -1170,7 +1169,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'PG',
     ticker: 'PG',
     name: 'Procter & Gamble',
     industry: 'Consumer Staples',
@@ -1199,7 +1198,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'PLTR',
     ticker: 'PLTR',
     name: 'Palantir',
     industry: 'Technology',
@@ -1228,7 +1227,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'QCOM',
     ticker: 'QCOM',
     name: 'Qualcomm',
     industry: 'Technology',
@@ -1257,7 +1256,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'RGTI',
     ticker: 'RGTI',
     name: 'Rigetti Computing',
     industry: 'Technology',
@@ -1286,7 +1285,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'RKLB',
     ticker: 'RKLB',
     name: 'Rocket Lab',
     industry: 'Industrials',
@@ -1315,7 +1314,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'SMCI',
     ticker: 'SMCI',
     name: 'Super Micro Computer',
     industry: 'Technology',
@@ -1344,7 +1343,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'SNOW',
     ticker: 'SNOW',
     name: 'Snowflake',
     industry: 'Technology',
@@ -1373,7 +1372,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'SOFI',
     ticker: 'SOFI',
     name: 'SoFi',
     industry: 'Financials',
@@ -1402,7 +1401,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'SOUN',
     ticker: 'SOUN',
     name: 'SoundHound AI',
     industry: 'Technology',
@@ -1431,7 +1430,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'TLN',
     ticker: 'TLN',
     name: 'Talen Energy',
     industry: 'Utilities',
@@ -1460,7 +1459,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'TSLA',
     ticker: 'TSLA',
     name: 'Tesla',
     industry: 'Consumer Discretionary',
@@ -1489,7 +1488,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'TSM',
     ticker: 'TSM',
     name: 'Taiwan Semiconductor',
     industry: 'Technology',
@@ -1518,7 +1517,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'UBER',
     ticker: 'UBER',
     name: 'Uber',
     industry: 'Consumer Discretionary',
@@ -1547,7 +1546,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'UNH',
     ticker: 'UNH',
     name: 'UnitedHealth',
     industry: 'Healthcare',
@@ -1576,7 +1575,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'UPST',
     ticker: 'UPST',
     name: 'Upstart',
     industry: 'Financials',
@@ -1605,7 +1604,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'V',
     ticker: 'V',
     name: 'Visa',
     industry: 'Financials',
@@ -1634,7 +1633,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'WMT',
     ticker: 'WMT',
     name: 'Walmart',
     industry: 'Consumer Staples',
@@ -1663,7 +1662,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'XOM',
     ticker: 'XOM',
     name: 'ExxonMobil',
     industry: 'Energy',
@@ -1692,7 +1691,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'MU',
     ticker: 'MU',
     name: 'Micron Technology',
     industry: 'Technology',
@@ -1721,7 +1720,7 @@ export const SAMPLE_STOCKS: Stock[] = [
     },
   },
   {
-    id: nanoid(),
+    id: 'IREN',
     ticker: 'IREN',
     name: 'IREN Limited',
     industry: 'Technology',

@@ -392,6 +392,7 @@ export default function PortfolioManager() {
   const setProjectionYears = usePortfolioStore((s) => s.setProjectionYears);
   const removeStockFromPortfolio = usePortfolioStore((s) => s.removeStockFromPortfolio);
   const normalizeAllocations = usePortfolioStore((s) => s.normalizeAllocations);
+  const duplicatePortfolio = usePortfolioStore((s) => s.duplicatePortfolio);
 
   const [capitalInput, setCapitalInput] = useState('');
   const [capitalEditing, setCapitalEditing] = useState(false);
@@ -451,6 +452,23 @@ export default function PortfolioManager() {
             <Plus className="w-3.5 h-3.5" />
             New
           </button>
+          {activePortfolioId && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => {
+                    duplicatePortfolio(activePortfolioId);
+                    toast.success('Portfolio copied');
+                  }}
+                  className="flex items-center gap-1 px-2 py-1.5 text-xs text-muted-foreground hover:text-[oklch(0.75_0.12_75)] shrink-0"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Copy</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">Duplicate active portfolio</TooltipContent>
+            </Tooltip>
+          )}
           <div className="ml-auto shrink-0">
             {activePortfolio && (
               <button

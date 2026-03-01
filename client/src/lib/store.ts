@@ -374,7 +374,7 @@ export const usePortfolioStore = create<PortfolioStore>()(
       setProjectionDrawerOpen: (open) => set({ projectionDrawerOpen: open }),
     }),
     {
-      name: 'portfolio-planner-v2',
+      name: 'portfolio-planner-v3',
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.setHasHydrated(true);

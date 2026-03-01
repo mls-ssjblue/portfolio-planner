@@ -21,8 +21,23 @@ function Slider({
     [value, defaultValue, min, max]
   );
 
+  // Attach a native (non-passive) wheel listener so we can call preventDefault
+  // and stop Radix's internal wheel handler from changing the value during scroll.
+  const rootRef = React.useRef<HTMLSpanElement>(null);
+  React.useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const block = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    el.addEventListener('wheel', block, { passive: false });
+    return () => el.removeEventListener('wheel', block);
+  }, []);
+
   return (
     <SliderPrimitive.Root
+      ref={rootRef as React.Ref<HTMLSpanElement>}
       data-slot="slider"
       defaultValue={defaultValue}
       value={value}

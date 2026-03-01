@@ -9,3 +9,4 @@
 - [x] Fix duplicate portfolios appearing on each page refresh
 - [x] Clean up DB: keep only "Current portfolio - latest" and "Portfolio A"
 - [x] Debounce portfolio sort: re-order only 1 second after slider is released, not during dragging
+- [x] Prevent sliders from changing values while scrolling (block wheel events on all sliders)

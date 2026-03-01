@@ -1,7 +1,7 @@
 // Portfolio Planner — Portfolio Manager (main canvas)
 // Design: Sophisticated Finance Dashboard (deep navy + gold)
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   SortableContext,
   useSortable,
@@ -63,12 +63,14 @@ function SortableStockRow({
   allocationMode,
   onRemove,
   onEdit,
+  onAllocationChange,
 }: {
   portfolioStock: PortfolioStock;
   totalCapital: number;
   allocationMode: 'percentage' | 'dollar';
   onRemove: () => void;
   onEdit: () => void;
+  onAllocationChange?: () => void;
 }) {
   const stockLibrary = usePortfolioStore((s) => s.stockLibrary);
   const updateStockAllocation = usePortfolioStore((s) => s.updateStockAllocation);
@@ -106,6 +108,7 @@ function SortableStockRow({
     const pct = val[0];
     setLocalPct(pct);
     updateStockAllocation(stock.id, pct);
+    onAllocationChange?.();
   };
 
   const handleDirectInput = (raw: string) => {
@@ -405,9 +408,53 @@ export default function PortfolioManager() {
     setCapitalEditing(false);
   };
 
-  // Sort stocks by dollar allocation (highest first) for display
+  // ── Debounced sort ────────────────────────────────────────────────────────
+  // Keep a stable display order that only re-sorts 1 second after slider
+  // activity stops, so the list doesn't jump while the user is dragging.
+  const [displayOrder, setDisplayOrder] = useState<string[]>(() =>
+    activePortfolio ? [...activePortfolio.stocks].sort((a, b) => b.allocationPct - a.allocationPct).map((s) => s.stockId) : []
+  );
+  const sortTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleSortUpdate = useCallback(() => {
+    if (sortTimerRef.current) clearTimeout(sortTimerRef.current);
+    sortTimerRef.current = setTimeout(() => {
+      if (activePortfolio) {
+        setDisplayOrder(
+          [...activePortfolio.stocks].sort((a, b) => b.allocationPct - a.allocationPct).map((s) => s.stockId)
+        );
+      }
+    }, 1000);
+  }, [activePortfolio]);
+
+  // When the active portfolio changes (tab switch, add/remove stock), immediately
+  // update the display order without debounce.
+  const prevPortfolioIdRef = useRef<string | null>(null);
+  const prevStockCountRef = useRef<number>(0);
+  useEffect(() => {
+    if (!activePortfolio) return;
+    const portfolioChanged = prevPortfolioIdRef.current !== activePortfolioId;
+    const stockCountChanged = prevStockCountRef.current !== activePortfolio.stocks.length;
+    prevPortfolioIdRef.current = activePortfolioId;
+    prevStockCountRef.current = activePortfolio.stocks.length;
+    if (portfolioChanged || stockCountChanged) {
+      // Immediate sort on structural changes
+      if (sortTimerRef.current) clearTimeout(sortTimerRef.current);
+      setDisplayOrder(
+        [...activePortfolio.stocks].sort((a, b) => b.allocationPct - a.allocationPct).map((s) => s.stockId)
+      );
+    }
+  }, [activePortfolioId, activePortfolio]);
+
+  // Build the sorted display list from the stable order, falling back to
+  // any stocks not yet in displayOrder (e.g., newly added).
   const sortedStocks = activePortfolio
-    ? [...activePortfolio.stocks].sort((a, b) => b.allocationPct - a.allocationPct)
+    ? [
+        ...displayOrder
+          .map((id) => activePortfolio.stocks.find((s) => s.stockId === id))
+          .filter(Boolean) as typeof activePortfolio.stocks,
+        ...activePortfolio.stocks.filter((s) => !displayOrder.includes(s.stockId)),
+      ]
     : [];
 
   const stocksAllocated = activePortfolio
@@ -620,6 +667,7 @@ export default function PortfolioManager() {
                           allocationMode={activePortfolio.allocationMode}
                           onRemove={() => removeStockFromPortfolio(ps.stockId)}
                           onEdit={() => {}}
+                          onAllocationChange={scheduleSortUpdate}
                         />
                       ))}
                       {/* Drop zone at bottom when stocks exist */}

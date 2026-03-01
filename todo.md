@@ -1,0 +1,1 @@
+- [x] When total capital changes, keep allocation dollar amounts fixed and recalculate percentages (not the other way around)

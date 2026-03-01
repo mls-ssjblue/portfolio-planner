@@ -22,12 +22,18 @@ import PortfolioManager from '@/components/PortfolioManager';
 import AnalyticsPanel from '@/components/AnalyticsPanel';
 import ProjectionDrawer from '@/components/ProjectionDrawer';
 import { usePortfolioStore } from '@/lib/store';
-import { TrendingUp, BookOpen, BarChart3, PieChart, X } from 'lucide-react';
+import { TrendingUp, BookOpen, BarChart3, PieChart, X, Cloud, CloudOff, LogIn, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { useCloudSync } from '@/hooks/useCloudSync';
+import { getLoginUrl } from '@/const';
 
 type MobileTab = 'library' | 'portfolio' | 'analytics';
 
 export default function Home() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isSyncing } = useCloudSync(isAuthenticated);
+
   const portfolios = usePortfolioStore((s) => s.portfolios);
   const hasHydrated = usePortfolioStore((s) => s._hasHydrated);
   const createPortfolio = usePortfolioStore((s) => s.createPortfolio);
@@ -132,6 +138,7 @@ export default function Home() {
 
           <div className="flex items-center gap-2 md:gap-4">
             <QuickStats />
+            <SyncStatus isAuthenticated={isAuthenticated} authLoading={authLoading} isSyncing={isSyncing} />
           </div>
         </header>
 
@@ -294,6 +301,49 @@ function QuickStats() {
         <p className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider">Horizon</p>
         <p className="font-mono text-xs md:text-sm font-semibold text-foreground">{activePortfolio.projectionYears}yr</p>
       </div>
+    </div>
+  );
+}
+
+function SyncStatus({ isAuthenticated, authLoading, isSyncing }: {
+  isAuthenticated: boolean;
+  authLoading: boolean;
+  isSyncing: boolean;
+}) {
+  if (authLoading) {
+    return (
+      <div className="flex items-center gap-1.5 text-muted-foreground">
+        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        <span className="hidden sm:block text-[10px]">Loading...</span>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <a
+        href={getLoginUrl()}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[oklch(0.75_0.12_75/15%)] hover:bg-[oklch(0.75_0.12_75/25%)] border border-[oklch(0.75_0.12_75/30%)] text-[oklch(0.75_0.12_75)] transition-colors"
+      >
+        <LogIn className="w-3.5 h-3.5" />
+        <span className="text-[11px] font-medium">Sign in to sync</span>
+      </a>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 text-muted-foreground">
+      {isSyncing ? (
+        <>
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-[oklch(0.75_0.12_75)]" />
+          <span className="hidden sm:block text-[10px] text-[oklch(0.75_0.12_75)]">Saving...</span>
+        </>
+      ) : (
+        <>
+          <Cloud className="w-3.5 h-3.5 text-[oklch(0.65_0.1_145)]" />
+          <span className="hidden sm:block text-[10px] text-[oklch(0.65_0.1_145)]">Synced</span>
+        </>
+      )}
     </div>
   );
 }

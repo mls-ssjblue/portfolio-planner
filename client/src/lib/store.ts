@@ -38,6 +38,23 @@ interface PortfolioStore {
   reorderPortfolioStocks: (stocks: PortfolioStock[]) => void;
   normalizeAllocations: () => void;
 
+  // Cloud sync
+  loadCloudData: (data: {
+    portfolios: Array<{
+      id: string;
+      name: string;
+      totalCapital: number;
+      allocationMode: 'percentage' | 'dollar';
+      cashPct: number;
+      projectionYears: number;
+      createdAt: Date;
+      updatedAt: Date;
+      stocks: Array<{ stockId: string; allocationPct: number; sortOrder: number }>;
+    }>;
+    projections: Array<{ stockId: string; projectionsJson: unknown }>;
+    activePortfolioId: string | null;
+  }) => void;
+
   // UI state
   selectedStockId: string | null;
   setSelectedStockId: (id: string | null) => void;
@@ -267,6 +284,40 @@ export const usePortfolioStore = create<PortfolioStore>()(
               : p
           ),
         }));
+      },
+
+      loadCloudData: (data) => {
+        // Merge cloud portfolios: cloud is source of truth if it has data
+        if (data.portfolios.length > 0) {
+          const cloudPortfolios: Portfolio[] = data.portfolios.map((p) => ({
+            id: p.id,
+            name: p.name,
+            totalCapital: p.totalCapital,
+            allocationMode: p.allocationMode as 'percentage' | 'dollar',
+            cashPct: p.cashPct,
+            projectionYears: p.projectionYears,
+            // Map DB portfolio_stocks rows to PortfolioStock shape
+            stocks: (p.stocks ?? []).map((s) => ({
+              stockId: s.stockId,
+              allocationPct: s.allocationPct,
+            })),
+            createdAt: new Date(p.createdAt).getTime(),
+            updatedAt: new Date(p.updatedAt).getTime(),
+          }));
+          const activeId = data.activePortfolioId ?? cloudPortfolios[0]?.id ?? null;
+          set({ portfolios: cloudPortfolios, activePortfolioId: activeId });
+        }
+        // Merge cloud projection overrides into stock library
+        if (data.projections.length > 0) {
+          const projMap = new Map(data.projections.map((p) => [p.stockId, p.projectionsJson]));
+          set((s) => ({
+            stockLibrary: s.stockLibrary.map((stock) => {
+              const override = projMap.get(stock.id);
+              if (!override) return stock;
+              return { ...stock, projections: override as typeof stock.projections };
+            }),
+          }));
+        }
       },
 
       setSelectedStockId: (id) => set({ selectedStockId: id }),

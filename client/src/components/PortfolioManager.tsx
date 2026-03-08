@@ -97,6 +97,10 @@ function SortableStockRow({
   const color = INDUSTRY_COLORS[stock.industry];
   const dollarValue = (portfolioStock.allocationPct / 100) * totalCapital;
 
+  // Compute step size: each tick ≈ $10 in dollar terms → very smooth fine-grained control
+  // step = ($10 / totalCapital) * 100  (as a percentage)
+  const sliderStep = totalCapital > 0 ? Math.max(0.01, (10 / totalCapital) * 100) : 0.1;
+
   // Compute base-case upside vs current price (using 5-year horizon)
   const currentPrice = stock.projections.currentPrice;
   const baseTargetPrice = calcTargetPrice(stock.projections.base, stock.projections, 5);
@@ -260,7 +264,7 @@ function SortableStockRow({
           onValueChange={handleSliderChange}
           min={0}
           max={100}
-          step={0.5}
+          step={sliderStep}
           className="[&_[role=slider]]:bg-[oklch(0.75_0.12_75)] [&_[role=slider]]:border-[oklch(0.75_0.12_75)] [&_.bg-primary]:bg-[oklch(0.75_0.12_75)]"
         />
       </div>
@@ -276,6 +280,8 @@ function CashRow({ cashPct, totalCapital, allocationMode }: {
 }) {
   const setCashPct = usePortfolioStore((s) => s.setCashPct);
   const dollarValue = (cashPct / 100) * totalCapital;
+  // Each tick ≈ $10 in dollar terms
+  const sliderStep = totalCapital > 0 ? Math.max(0.01, (10 / totalCapital) * 100) : 0.1;
 
   return (
     <div className="rounded-lg border border-[oklch(0.75_0.12_75/20%)] bg-[oklch(0.75_0.12_75/5%)] p-3">
@@ -305,7 +311,7 @@ function CashRow({ cashPct, totalCapital, allocationMode }: {
         onValueChange={(v) => setCashPct(v[0])}
         min={0}
         max={100}
-        step={0.5}
+        step={sliderStep}
         className="[&_[role=slider]]:bg-[oklch(0.75_0.12_75)] [&_[role=slider]]:border-[oklch(0.75_0.12_75)] [&_.bg-primary]:bg-[oklch(0.75_0.12_75/60%)]"
       />
     </div>
@@ -409,8 +415,8 @@ export default function PortfolioManager() {
   };
 
   // ── Debounced sort ────────────────────────────────────────────────────────
-  // Keep a stable display order that only re-sorts 1 second after slider
-  // activity stops, so the list doesn't jump while the user is dragging.
+  // Keep a stable display order that only re-sorts 3 seconds after slider
+  // activity stops, so the list doesn't jump while the user is adjusting.
   const [displayOrder, setDisplayOrder] = useState<string[]>(() =>
     activePortfolio ? [...activePortfolio.stocks].sort((a, b) => b.allocationPct - a.allocationPct).map((s) => s.stockId) : []
   );
@@ -424,7 +430,7 @@ export default function PortfolioManager() {
           [...activePortfolio.stocks].sort((a, b) => b.allocationPct - a.allocationPct).map((s) => s.stockId)
         );
       }
-    }, 1000);
+    }, 3000);
   }, [activePortfolio]);
 
   // When the active portfolio changes (tab switch, add/remove stock), immediately

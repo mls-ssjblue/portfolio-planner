@@ -415,7 +415,7 @@ export default function PortfolioManager() {
   };
 
   // ── Debounced sort ────────────────────────────────────────────────────────
-  // Keep a stable display order that only re-sorts 3 seconds after slider
+  // Keep a stable display order that only re-sorts 1.5 seconds after slider
   // activity stops, so the list doesn't jump while the user is adjusting.
   const [displayOrder, setDisplayOrder] = useState<string[]>(() =>
     activePortfolio ? [...activePortfolio.stocks].sort((a, b) => b.allocationPct - a.allocationPct).map((s) => s.stockId) : []
@@ -425,13 +425,17 @@ export default function PortfolioManager() {
   const scheduleSortUpdate = useCallback(() => {
     if (sortTimerRef.current) clearTimeout(sortTimerRef.current);
     sortTimerRef.current = setTimeout(() => {
-      if (activePortfolio) {
+      // Read fresh state from the store to avoid stale closure over activePortfolio.
+      const freshPortfolios = usePortfolioStore.getState().portfolios;
+      const freshActiveId = usePortfolioStore.getState().activePortfolioId;
+      const freshPortfolio = freshPortfolios.find((p) => p.id === freshActiveId);
+      if (freshPortfolio) {
         setDisplayOrder(
-          [...activePortfolio.stocks].sort((a, b) => b.allocationPct - a.allocationPct).map((s) => s.stockId)
+          [...freshPortfolio.stocks].sort((a, b) => b.allocationPct - a.allocationPct).map((s) => s.stockId)
         );
       }
-    }, 3000);
-  }, [activePortfolio]);
+    }, 1500);
+  }, []);
 
   // When the active portfolio changes (tab switch, add/remove stock), immediately
   // update the display order without debounce.
@@ -655,7 +659,7 @@ export default function PortfolioManager() {
             </div>
 
             {/* Stock list */}
-            <div className="flex-1 px-4 py-3 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex-1 px-4 py-3 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
               <SortableContext
                 items={sortedStocks.map((s) => s.stockId)}
                 strategy={verticalListSortingStrategy}

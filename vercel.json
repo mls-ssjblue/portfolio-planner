@@ -1,20 +1,28 @@
 {
   "version": 2,
+  "buildCommand": "pnpm run build",
   "outputDirectory": "dist/public",
   "installCommand": "pnpm install",
   "functions": {
-    "api/index.js": {
+    "api/handler.cjs": {
       "maxDuration": 30
     }
   },
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "src": "^/api/(.*)",
+      "dest": "/api/handler.cjs"
     },
     {
-      "src": "/(.*)",
+      "src": "^/(?!api/)(.*)$",
       "dest": "/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "^/(?!api/).*$",
+      "dest": "/index.html"
     }
   ]
 }

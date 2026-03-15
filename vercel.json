@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm run build && esbuild server/_core/app.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/app.js",
+  "outputDirectory": "dist/public",
+  "installCommand": "pnpm install",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}

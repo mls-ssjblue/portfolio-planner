@@ -4,14 +4,14 @@
   "outputDirectory": "dist/public",
   "installCommand": "pnpm install",
   "functions": {
-    "api/handler.cjs": {
+    "api/index.mjs": {
       "maxDuration": 30
     }
   },
   "routes": [
     {
       "src": "^/api/(.*)",
-      "dest": "/api/handler.cjs"
+      "dest": "/api/index.mjs"
     },
     {
       "src": "^/(?!api/)(.*)$",

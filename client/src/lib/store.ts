@@ -231,20 +231,24 @@ export const usePortfolioStore = create<PortfolioStore>()(
         set((s) => ({
           portfolios: s.portfolios.map((p) => {
             if (p.id !== s.activePortfolioId) return p;
-            // Keep dollar amounts fixed; recalculate percentages from the new capital.
-            // Dollar amount for each stock = (oldPct / 100) * oldCapital
-            // New pct = dollarAmount / newCapital * 100
+            // Keep each stock's dollar amount fixed; recalculate its percentage from the new capital.
+            // The difference in total capital goes entirely to (or comes from) cash.
             const oldCapital = p.totalCapital;
             if (oldCapital === 0 || capital === 0) {
               return { ...p, totalCapital: capital, updatedAt: Date.now() };
             }
+            // Recalculate stock percentages so their dollar values stay the same
             const newStocks = p.stocks.map((st) => {
               const dollarAmt = (st.allocationPct / 100) * oldCapital;
               const newPct = parseFloat(((dollarAmt / capital) * 100).toFixed(4));
               return { ...st, allocationPct: newPct };
             });
+            // Cash absorbs the full capital delta:
+            //   cashDollar (old) = (cashPct / 100) * oldCapital
+            //   newCashDollar    = cashDollar + (capital - oldCapital)
             const cashDollar = (p.cashPct / 100) * oldCapital;
-            const newCashPct = parseFloat(((cashDollar / capital) * 100).toFixed(4));
+            const newCashDollar = cashDollar + (capital - oldCapital);
+            const newCashPct = parseFloat(((Math.max(0, newCashDollar) / capital) * 100).toFixed(4));
             return {
               ...p,
               totalCapital: capital,

@@ -2,6 +2,7 @@
 // Design: Sophisticated Finance Dashboard (deep navy + gold)
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLivePrices } from '@/hooks/useLivePrices';
 import {
   SortableContext,
   useSortable,
@@ -64,6 +65,10 @@ function SortableStockRow({
   onRemove,
   onEdit,
   onAllocationChange,
+  livePrice,
+  livePriceLoading,
+  livePriceChange,
+  livePriceChangePct,
 }: {
   portfolioStock: PortfolioStock;
   totalCapital: number;
@@ -71,6 +76,10 @@ function SortableStockRow({
   onRemove: () => void;
   onEdit: () => void;
   onAllocationChange?: () => void;
+  livePrice?: number;
+  livePriceLoading?: boolean;
+  livePriceChange?: number;
+  livePriceChangePct?: number;
 }) {
   const stockLibrary = usePortfolioStore((s) => s.stockLibrary);
   const updateStockAllocation = usePortfolioStore((s) => s.updateStockAllocation);
@@ -159,7 +168,7 @@ function SortableStockRow({
 
         {/* Stock info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono text-sm font-semibold text-foreground">{stock.ticker}</span>
             <span
               className="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0"
@@ -167,6 +176,25 @@ function SortableStockRow({
             >
               {stock.industry.split(' ')[0]}
             </span>
+            {/* Live price */}
+            {livePriceLoading && !livePrice ? (
+              <span className="text-[10px] text-muted-foreground/50 font-mono animate-pulse">…</span>
+            ) : livePrice && livePrice > 0 ? (
+              <span className="flex items-center gap-1 shrink-0">
+                <span className="text-[11px] font-mono font-semibold text-foreground/80">
+                  ${livePrice < 1 ? livePrice.toFixed(4) : livePrice < 10 ? livePrice.toFixed(3) : livePrice.toFixed(2)}
+                </span>
+                {livePriceChangePct !== undefined && (
+                  <span
+                    className={`text-[9px] font-mono font-semibold ${
+                      livePriceChangePct >= 0 ? 'text-emerald-400' : 'text-red-400'
+                    }`}
+                  >
+                    {livePriceChangePct >= 0 ? '+' : ''}{livePriceChangePct.toFixed(2)}%
+                  </span>
+                )}
+              </span>
+            ) : null}
           </div>
           <p className="text-[10px] text-muted-foreground truncate">{stock.name}</p>
         </div>
@@ -467,6 +495,15 @@ export default function PortfolioManager() {
       ]
     : [];
 
+  // ── Live prices ──────────────────────────────────────────────────────────
+  const stockLibraryForPrices = usePortfolioStore((s) => s.stockLibrary);
+  const portfolioTickers = activePortfolio
+    ? activePortfolio.stocks
+        .map((ps) => stockLibraryForPrices.find((s) => s.id === ps.stockId)?.ticker)
+        .filter(Boolean) as string[]
+    : [];
+  const livePrices = useLivePrices(portfolioTickers);
+
   const stocksAllocated = activePortfolio
     ? activePortfolio.stocks.reduce((s, ps) => s + ps.allocationPct, 0)
     : 0;
@@ -669,17 +706,25 @@ export default function PortfolioManager() {
                     <PortfolioDropZone isEmpty={true} />
                   ) : (
                     <>
-                      {sortedStocks.map((ps) => (
-                        <SortableStockRow
-                          key={ps.stockId}
-                          portfolioStock={ps}
-                          totalCapital={activePortfolio.totalCapital}
-                          allocationMode={activePortfolio.allocationMode}
-                          onRemove={() => removeStockFromPortfolio(ps.stockId)}
-                          onEdit={() => {}}
-                          onAllocationChange={scheduleSortUpdate}
-                        />
-                      ))}
+                      {sortedStocks.map((ps) => {
+                        const ticker = stockLibraryForPrices.find((s) => s.id === ps.stockId)?.ticker;
+                        const lp = ticker ? livePrices.get(ticker) : undefined;
+                        return (
+                          <SortableStockRow
+                            key={ps.stockId}
+                            portfolioStock={ps}
+                            totalCapital={activePortfolio.totalCapital}
+                            allocationMode={activePortfolio.allocationMode}
+                            onRemove={() => removeStockFromPortfolio(ps.stockId)}
+                            onEdit={() => {}}
+                            onAllocationChange={scheduleSortUpdate}
+                            livePrice={lp?.price}
+                            livePriceLoading={lp?.loading}
+                            livePriceChange={lp?.change}
+                            livePriceChangePct={lp?.changePct}
+                          />
+                        );
+                      })}
                       {/* Drop zone at bottom when stocks exist */}
                       <DroppableBottom />
                     </>

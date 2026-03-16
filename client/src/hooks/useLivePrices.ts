@@ -1,5 +1,5 @@
 // Portfolio Planner — Live Price Hook
-// Fetches real-time prices from Yahoo Finance for all tickers in the active portfolio.
+// Fetches real-time prices via the server-side /api/prices proxy (avoids CORS).
 // Prices are cached in module-level state and refreshed every 60 seconds.
 
 import { useState, useEffect, useRef } from 'react';
@@ -8,25 +8,14 @@ import { useState, useEffect, useRef } from 'react';
 const priceCache = new Map<string, { price: number; change: number; changePct: number; fetchedAt: number }>();
 const CACHE_TTL_MS = 60_000; // 1 minute
 
-async function fetchPrice(ticker: string): Promise<{ price: number; change: number; changePct: number } | null> {
+async function fetchPricesBatch(tickers: string[]): Promise<Record<string, { price: number; change: number; changePct: number }>> {
+  if (tickers.length === 0) return {};
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=2d`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' },
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    const meta = json?.chart?.result?.[0]?.meta;
-    if (!meta) return null;
-
-    const price = meta.regularMarketPrice ?? 0;
-    const prevClose = meta.chartPreviousClose ?? meta.previousClose ?? price;
-    const change = price - prevClose;
-    const changePct = prevClose > 0 ? (change / prevClose) * 100 : 0;
-
-    return { price, change, changePct };
+    const res = await fetch(`/api/prices?tickers=${encodeURIComponent(tickers.join(','))}`);
+    if (!res.ok) return {};
+    return await res.json() as Record<string, { price: number; change: number; changePct: number }>;
   } catch {
-    return null;
+    return {};
   }
 }
 
@@ -66,30 +55,25 @@ export function useLivePrices(tickers: string[]): Map<string, LivePrice> {
       if (!cancelled) setPrices(new Map(initial));
       if (toFetch.length === 0) return;
 
-      // Fetch stale/missing prices in parallel (batched to avoid rate limits)
-      const BATCH = 5;
-      for (let i = 0; i < toFetch.length; i += BATCH) {
-        if (cancelled) return;
-        const batch = toFetch.slice(i, i + BATCH);
-        const results = await Promise.all(batch.map((t) => fetchPrice(t).then((r) => ({ ticker: t, result: r }))));
-        if (cancelled) return;
+      // Fetch all stale/missing tickers in a single batched server request
+      const results = await fetchPricesBatch(toFetch);
+      if (cancelled) return;
 
-        setPrices((prev) => {
-          const next = new Map(prev);
-          for (const { ticker, result } of results) {
-            if (result) {
-              const entry = { ...result, fetchedAt: Date.now() };
-              priceCache.set(ticker, entry);
-              next.set(ticker, { ...result, loading: false });
-            } else {
-              // Keep whatever we had, just mark not loading
-              const existing = next.get(ticker);
-              if (existing) next.set(ticker, { ...existing, loading: false });
-            }
+      const fetchedAt = Date.now();
+      setPrices((prev) => {
+        const next = new Map(prev);
+        for (const ticker of toFetch) {
+          const result = results[ticker];
+          if (result) {
+            priceCache.set(ticker, { ...result, fetchedAt });
+            next.set(ticker, { ...result, loading: false });
+          } else {
+            const existing = next.get(ticker);
+            if (existing) next.set(ticker, { ...existing, loading: false });
           }
-          return next;
-        });
-      }
+        }
+        return next;
+      });
     };
 
     loadPrices();

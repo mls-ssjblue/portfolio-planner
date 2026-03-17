@@ -53,29 +53,39 @@ async function startServer() {
       }
       return true;
     });
+    // Fetch prices from stooq.com (no auth required, works from Railway)
+    // Use historical endpoint to get last 2 trading days so we can compute day % change
+    const today = new Date();
+    const d2 = today.toISOString().slice(0, 10).replace(/-/g, '');
+    const past = new Date(today); past.setDate(past.getDate() - 7);
+    const d1 = past.toISOString().slice(0, 10).replace(/-/g, '');
+
     await Promise.all(toFetch.map(async (ticker) => {
       try {
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=2d`;
+        // stooq uses lowercase ticker with .us suffix for US stocks
+        const sym = ticker.toLowerCase() + '.us';
+        const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&d1=${d1}&d2=${d2}&i=d`;
         const r = await fetch(url, {
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Referer": "https://finance.yahoo.com/",
-          }
+          headers: { "User-Agent": "Mozilla/5.0", "Accept": "text/csv,*/*" }
         });
         if (!r.ok) {
           console.error(`[prices] ${ticker}: HTTP ${r.status}`);
           return;
         }
-        const json = await r.json() as any;
-        const meta = json?.chart?.result?.[0]?.meta;
-        if (!meta) {
-          console.error(`[prices] ${ticker}: no meta in response`);
+        const csv = await r.text();
+        const lines = csv.trim().split('\n').filter(l => l && !l.startsWith('Date'));
+        if (lines.length === 0) {
+          console.error(`[prices] ${ticker}: no data rows`);
           return;
         }
-        const price = meta.regularMarketPrice ?? 0;
-        const prevClose = meta.chartPreviousClose ?? meta.previousClose ?? price;
+        // Lines are in ascending date order; last line = most recent
+        const parseLine = (l: string) => { const p = l.split(','); return parseFloat(p[4]); }; // Close is col 4
+        const price = parseLine(lines[lines.length - 1]);
+        const prevClose = lines.length >= 2 ? parseLine(lines[lines.length - 2]) : price;
+        if (!price || isNaN(price)) {
+          console.error(`[prices] ${ticker}: invalid price`, lines[lines.length - 1]);
+          return;
+        }
         const change = price - prevClose;
         const changePct = prevClose > 0 ? (change / prevClose) * 100 : 0;
         const entry = { price, change, changePct, fetchedAt: Date.now() };

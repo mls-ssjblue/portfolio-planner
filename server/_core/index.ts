@@ -56,11 +56,24 @@ async function startServer() {
     await Promise.all(toFetch.map(async (ticker) => {
       try {
         const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=2d`;
-        const r = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0", Accept: "application/json" } });
-        if (!r.ok) return;
+        const r = await fetch(url, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://finance.yahoo.com/",
+          }
+        });
+        if (!r.ok) {
+          console.error(`[prices] ${ticker}: HTTP ${r.status}`);
+          return;
+        }
         const json = await r.json() as any;
         const meta = json?.chart?.result?.[0]?.meta;
-        if (!meta) return;
+        if (!meta) {
+          console.error(`[prices] ${ticker}: no meta in response`);
+          return;
+        }
         const price = meta.regularMarketPrice ?? 0;
         const prevClose = meta.chartPreviousClose ?? meta.previousClose ?? price;
         const change = price - prevClose;
@@ -68,7 +81,9 @@ async function startServer() {
         const entry = { price, change, changePct, fetchedAt: Date.now() };
         serverPriceCache.set(ticker, entry);
         result[ticker] = { price, change, changePct };
-      } catch { /* ignore */ }
+      } catch (err) {
+        console.error(`[prices] ${ticker}: fetch error`, err);
+      }
     }));
     res.json(result);
   });

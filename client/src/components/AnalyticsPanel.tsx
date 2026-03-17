@@ -346,7 +346,7 @@ function StockDetailTable() {
           </tr>
         </thead>
         <tbody>
-          {activePortfolio.stocks.map((ps) => {
+          {[...activePortfolio.stocks].sort((a, b) => b.allocationPct - a.allocationPct).map((ps) => {
             const stock = stockLibrary.find((s) => s.id === ps.stockId);
             if (!stock) return null;
             const invested = (ps.allocationPct / 100) * activePortfolio.totalCapital;

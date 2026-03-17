@@ -168,25 +168,29 @@ function SortableStockRow({
 
         {/* Stock info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono text-sm font-semibold text-foreground">{stock.ticker}</span>
+          {/* Row 1: ticker + sector badge + stock name */}
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-sm font-semibold text-foreground leading-none">{stock.ticker}</span>
             <span
-              className="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0"
+              className="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0 leading-none"
               style={{ background: `${color}20`, color, border: `1px solid ${color}40` }}
             >
               {stock.industry.split(' ')[0]}
             </span>
-            {/* Live price + share count */}
+          </div>
+          <p className="text-[10px] text-muted-foreground truncate mt-0.5">{stock.name}</p>
+          {/* Row 2: live price · % change · shares · dollar value */}
+          <div className="flex items-center gap-0 mt-1 min-w-0">
             {livePriceLoading && !livePrice ? (
               <span className="text-[10px] text-muted-foreground/50 font-mono animate-pulse">…</span>
             ) : livePrice && livePrice > 0 ? (
-              <span className="flex items-center gap-1.5 shrink-0">
-                <span className="text-[11px] font-mono font-semibold text-foreground/80">
+              <>
+                <span className="text-[11px] font-mono font-semibold text-foreground/90 shrink-0">
                   ${livePrice < 1 ? livePrice.toFixed(4) : livePrice < 10 ? livePrice.toFixed(3) : livePrice.toFixed(2)}
                 </span>
                 {livePriceChangePct !== undefined && (
                   <span
-                    className={`text-[9px] font-mono font-semibold ${
+                    className={`text-[10px] font-mono font-semibold ml-1 shrink-0 ${
                       livePriceChangePct >= 0 ? 'text-emerald-400' : 'text-red-400'
                     }`}
                   >
@@ -194,16 +198,24 @@ function SortableStockRow({
                   </span>
                 )}
                 {dollarValue > 0 && (
-                  <span className="text-[9px] font-mono text-muted-foreground/60 border-l border-[oklch(1_0_0/10%)] pl-1.5">
-                    {(dollarValue / livePrice) >= 1
-                      ? (dollarValue / livePrice).toFixed(1) + ' sh'
-                      : (dollarValue / livePrice).toFixed(3) + ' sh'}
-                  </span>
+                  <>
+                    <span className="mx-1.5 text-[oklch(1_0_0/15%)] font-mono text-[10px] shrink-0">·</span>
+                    <span className="text-[10px] font-mono text-muted-foreground/70 shrink-0">
+                      {(dollarValue / livePrice) >= 100
+                        ? Math.round(dollarValue / livePrice) + ' sh'
+                        : (dollarValue / livePrice) >= 1
+                          ? (dollarValue / livePrice).toFixed(1) + ' sh'
+                          : (dollarValue / livePrice).toFixed(3) + ' sh'}
+                    </span>
+                    <span className="mx-1.5 text-[oklch(1_0_0/15%)] font-mono text-[10px] shrink-0">·</span>
+                    <span className="text-[10px] font-mono text-muted-foreground/70 shrink-0 truncate">
+                      {formatCurrency(dollarValue, true)}
+                    </span>
+                  </>
                 )}
-              </span>
+              </>
             ) : null}
           </div>
-          <p className="text-[10px] text-muted-foreground truncate">{stock.name}</p>
         </div>
 
         {/* Upside / downside badge */}

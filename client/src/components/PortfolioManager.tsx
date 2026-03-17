@@ -176,11 +176,11 @@ function SortableStockRow({
             >
               {stock.industry.split(' ')[0]}
             </span>
-            {/* Live price */}
+            {/* Live price + share count */}
             {livePriceLoading && !livePrice ? (
               <span className="text-[10px] text-muted-foreground/50 font-mono animate-pulse">…</span>
             ) : livePrice && livePrice > 0 ? (
-              <span className="flex items-center gap-1 shrink-0">
+              <span className="flex items-center gap-1.5 shrink-0">
                 <span className="text-[11px] font-mono font-semibold text-foreground/80">
                   ${livePrice < 1 ? livePrice.toFixed(4) : livePrice < 10 ? livePrice.toFixed(3) : livePrice.toFixed(2)}
                 </span>
@@ -191,6 +191,13 @@ function SortableStockRow({
                     }`}
                   >
                     {livePriceChangePct >= 0 ? '+' : ''}{livePriceChangePct.toFixed(2)}%
+                  </span>
+                )}
+                {dollarValue > 0 && (
+                  <span className="text-[9px] font-mono text-muted-foreground/60 border-l border-[oklch(1_0_0/10%)] pl-1.5">
+                    {(dollarValue / livePrice) >= 1
+                      ? (dollarValue / livePrice).toFixed(1) + ' sh'
+                      : (dollarValue / livePrice).toFixed(3) + ' sh'}
                   </span>
                 )}
               </span>

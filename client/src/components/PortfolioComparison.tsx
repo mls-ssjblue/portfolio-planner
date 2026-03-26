@@ -16,7 +16,7 @@ const SCENARIO_COLORS = {
   bull: '#22c55e',
 };
 
-const GOLD = 'oklch(0.75 0.12 75)';
+const GOLD = 'oklch(0.72 0.17 162)';
 
 function formatK(v: number): string {
   if (v >= 1e9) return `$${(v / 1e9).toFixed(2)}B`;
@@ -97,7 +97,7 @@ export default function PortfolioComparison() {
         </div>
         <button
           onClick={handleExportAll}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-[oklch(0.75_0.12_75)] hover:bg-[oklch(0.75_0.12_75/8%)] border border-[oklch(1_0_0/8%)] hover:border-[oklch(0.75_0.12_75/30%)] transition-all"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-[oklch(0.72_0.17_162)] hover:bg-[oklch(0.72_0.17_162/8%)] border border-[oklch(1_0_0/8%)] hover:border-[oklch(0.72_0.17_162/30%)] transition-all"
         >
           <FileJson className="w-3.5 h-3.5" />
           Export All
@@ -129,13 +129,13 @@ export default function PortfolioComparison() {
                 />
                 <Tooltip
                   contentStyle={{
-                    background: 'oklch(0.17 0.04 255)',
+                    background: 'oklch(0.17 0.02 220)',
                     border: '1px solid oklch(1 0 0 / 10%)',
                     borderRadius: '8px',
                     fontSize: '11px',
                   }}
                   formatter={(value: number) => [formatK(value), '']}
-                  labelStyle={{ color: 'oklch(0.85 0.005 65)', fontWeight: 600, marginBottom: 4 }}
+                  labelStyle={{ color: 'oklch(0.85 0.005 150)', fontWeight: 600, marginBottom: 4 }}
                 />
                 <Legend
                   wrapperStyle={{ fontSize: 10, paddingTop: 8 }}
@@ -159,7 +159,7 @@ export default function PortfolioComparison() {
                 onClick={() => setActivePortfolio(portfolio.id)}
                 className={`rounded-xl border transition-all cursor-pointer ${
                   isActive
-                    ? 'border-[oklch(0.75_0.12_75/40%)] bg-[oklch(0.75_0.12_75/5%)]'
+                    ? 'border-[oklch(0.72_0.17_162/40%)] bg-[oklch(0.72_0.17_162/5%)]'
                     : 'border-[oklch(1_0_0/8%)] bg-[oklch(1_0_0/2%)] hover:border-[oklch(1_0_0/14%)]'
                 }`}
               >
@@ -167,7 +167,7 @@ export default function PortfolioComparison() {
                 <div className="flex items-center justify-between px-4 py-2.5 border-b border-[oklch(1_0_0/6%)]">
                   <div className="flex items-center gap-2">
                     {isActive && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-[oklch(0.75_0.12_75)]" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-[oklch(0.72_0.17_162)]" />
                     )}
                     <span className="text-sm font-semibold text-foreground font-serif">{portfolio.name}</span>
                     <span className="text-[10px] text-muted-foreground bg-[oklch(1_0_0/5%)] px-1.5 py-0.5 rounded">
@@ -178,12 +178,12 @@ export default function PortfolioComparison() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-[oklch(0.75_0.12_75)] font-semibold">
+                    <span className="font-mono text-xs text-[oklch(0.72_0.17_162)] font-semibold">
                       {formatK(portfolio.totalCapital)}
                     </span>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleExportCSV(portfolio.id); }}
-                      className="p-1 rounded hover:bg-[oklch(1_0_0/8%)] text-muted-foreground hover:text-[oklch(0.75_0.12_75)] transition-colors"
+                      className="p-1 rounded hover:bg-[oklch(1_0_0/8%)] text-muted-foreground hover:text-[oklch(0.72_0.17_162)] transition-colors"
                       title="Export to CSV"
                     >
                       <Download className="w-3.5 h-3.5" />

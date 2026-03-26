@@ -141,17 +141,17 @@ export default function Home() {
       <div
         className="h-screen flex flex-col overflow-hidden"
         style={{
-          background: 'oklch(0.12 0.04 255)',
+          background: 'oklch(0.12 0.02 220)',
           backgroundImage: `url("https://d2xsxph8kpxj0f.cloudfront.net/310519663323260294/jkQ9xJrmBM27yUbTi7dGC8/stock-card-bg-efvSKzMfYjakid25CnBPMB.webp")`,
           backgroundSize: '400px',
           backgroundBlendMode: 'overlay',
         }}
       >
         {/* Top Navigation Bar */}
-        <header className="h-12 md:h-14 flex items-center justify-between px-3 md:px-4 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.13_0.04_255/95%)] backdrop-blur-sm shrink-0 z-10">
+        <header className="h-12 md:h-14 flex items-center justify-between px-3 md:px-4 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.13_0.02_220/95%)] backdrop-blur-sm shrink-0 z-10">
           <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-[oklch(0.75_0.12_75)] flex items-center justify-center shrink-0">
-              <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4 text-[oklch(0.12_0.04_255)]" />
+            <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-[oklch(0.72_0.17_162)] flex items-center justify-center shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4 text-[oklch(0.12_0.02_220)]" />
             </div>
             <div>
               <h1 className="font-serif text-sm md:text-base font-semibold text-foreground leading-tight">Portfolio Planner</h1>
@@ -171,7 +171,7 @@ export default function Home() {
             <ResizablePanel defaultSize={18} minSize={14} maxSize={28}>
               <StockLibrary />
             </ResizablePanel>
-            <ResizableHandle className="w-px bg-[oklch(1_0_0/8%)] hover:bg-[oklch(0.75_0.12_75/40%)] transition-colors" />
+            <ResizableHandle className="w-px bg-[oklch(1_0_0/8%)] hover:bg-[oklch(0.72_0.17_162/40%)] transition-colors" />
             <ResizablePanel defaultSize={82} minSize={50}>
               <PortfolioManagerWithAnalytics />
             </ResizablePanel>
@@ -201,7 +201,7 @@ export default function Home() {
 
           {/* Mobile Projection Drawer overlay */}
           {projectionDrawerOpen && (
-            <div className="absolute inset-0 z-50 bg-[oklch(0.12_0.04_255/95%)] backdrop-blur-sm flex flex-col">
+            <div className="absolute inset-0 z-50 bg-[oklch(0.12_0.02_220/95%)] backdrop-blur-sm flex flex-col">
               <div className="flex items-center justify-between px-4 py-3 border-b border-[oklch(1_0_0/8%)] shrink-0">
                 <h2 className="font-serif text-base font-semibold text-foreground">Stock Projections</h2>
                 <button
@@ -224,7 +224,7 @@ export default function Home() {
         </div>
 
         {/* ── Mobile Bottom Navigation ── */}
-        <nav className="flex md:hidden shrink-0 border-t border-[oklch(1_0_0/8%)] bg-[oklch(0.13_0.04_255/98%)] backdrop-blur-sm">
+        <nav className="flex md:hidden shrink-0 border-t border-[oklch(1_0_0/8%)] bg-[oklch(0.13_0.02_220/98%)] backdrop-blur-sm">
           <MobileTabButton
             label="Library"
             icon={<BookOpen className="w-5 h-5" />}
@@ -249,7 +249,7 @@ export default function Home() {
       {/* Drag Overlay — shown while dragging */}
       <DragOverlay dropAnimation={null}>
         {activeDragId && (
-          <div className="px-3 py-2 rounded-lg bg-[oklch(0.17_0.04_255)] border border-[oklch(0.75_0.12_75/70%)] shadow-2xl text-sm font-mono font-bold text-[oklch(0.75_0.12_75)] opacity-95 pointer-events-none">
+          <div className="px-3 py-2 rounded-lg bg-[oklch(0.17_0.02_220)] border border-[oklch(0.72_0.17_162/70%)] shadow-2xl text-sm font-mono font-bold text-[oklch(0.72_0.17_162)] opacity-95 pointer-events-none">
             {activeDragTicker || 'Moving...'}
           </div>
         )}
@@ -269,14 +269,14 @@ function MobileTabButton({ label, icon, active, onClick }: {
       onClick={onClick}
       className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-2.5 transition-colors
         ${active
-          ? 'text-[oklch(0.75_0.12_75)]'
+          ? 'text-[oklch(0.72_0.17_162)]'
           : 'text-muted-foreground hover:text-foreground'
         }`}
     >
       {icon}
       <span className="text-[10px] font-medium">{label}</span>
       {active && (
-        <div className="absolute bottom-0 w-8 h-0.5 bg-[oklch(0.75_0.12_75)] rounded-t-full" />
+        <div className="absolute bottom-0 w-8 h-0.5 bg-[oklch(0.72_0.17_162)] rounded-t-full" />
       )}
     </button>
   );
@@ -303,7 +303,7 @@ function QuickStats() {
     <div className="flex items-center gap-2 md:gap-4">
       <div className="text-center">
         <p className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider">Capital</p>
-        <p className="font-mono text-xs md:text-sm font-semibold text-[oklch(0.75_0.12_75)]">{formatK(capital)}</p>
+        <p className="font-mono text-xs md:text-sm font-semibold text-[oklch(0.72_0.17_162)]">{formatK(capital)}</p>
       </div>
       <div className="w-px h-6 md:h-8 bg-[oklch(1_0_0/8%)]" />
       <div className="text-center">
@@ -342,7 +342,7 @@ function SyncStatus({ isAuthenticated, authLoading, isSyncing }: {
     return (
       <a
         href={getLoginUrl()}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[oklch(0.75_0.12_75/15%)] hover:bg-[oklch(0.75_0.12_75/25%)] border border-[oklch(0.75_0.12_75/30%)] text-[oklch(0.75_0.12_75)] transition-colors"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[oklch(0.72_0.17_162/15%)] hover:bg-[oklch(0.72_0.17_162/25%)] border border-[oklch(0.72_0.17_162/30%)] text-[oklch(0.72_0.17_162)] transition-colors"
       >
         <LogIn className="w-3.5 h-3.5" />
         <span className="text-[11px] font-medium">Sign in to sync</span>
@@ -354,13 +354,13 @@ function SyncStatus({ isAuthenticated, authLoading, isSyncing }: {
     <div className="flex items-center gap-1.5 text-muted-foreground">
       {isSyncing ? (
         <>
-          <Loader2 className="w-3.5 h-3.5 animate-spin text-[oklch(0.75_0.12_75)]" />
-          <span className="hidden sm:block text-[10px] text-[oklch(0.75_0.12_75)]">Saving...</span>
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-[oklch(0.72_0.17_162)]" />
+          <span className="hidden sm:block text-[10px] text-[oklch(0.72_0.17_162)]">Saving...</span>
         </>
       ) : (
         <>
-          <Cloud className="w-3.5 h-3.5 text-[oklch(0.65_0.1_145)]" />
-          <span className="hidden sm:block text-[10px] text-[oklch(0.65_0.1_145)]">Synced</span>
+          <Cloud className="w-3.5 h-3.5 text-[oklch(0.60_0.18_200)]" />
+          <span className="hidden sm:block text-[10px] text-[oklch(0.60_0.18_200)]">Synced</span>
         </>
       )}
     </div>
@@ -374,12 +374,12 @@ function PortfolioManagerWithAnalytics() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Tab bar */}
-      <div className="flex shrink-0 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.13_0.04_255/80%)]">
+      <div className="flex shrink-0 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.13_0.02_220/80%)]">
         <button
           onClick={() => setActiveTab('portfolio')}
           className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
             activeTab === 'portfolio'
-              ? 'border-[oklch(0.75_0.12_75)] text-[oklch(0.75_0.12_75)]'
+              ? 'border-[oklch(0.72_0.17_162)] text-[oklch(0.72_0.17_162)]'
               : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
@@ -390,7 +390,7 @@ function PortfolioManagerWithAnalytics() {
           onClick={() => setActiveTab('analytics')}
           className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
             activeTab === 'analytics'
-              ? 'border-[oklch(0.75_0.12_75)] text-[oklch(0.75_0.12_75)]'
+              ? 'border-[oklch(0.72_0.17_162)] text-[oklch(0.72_0.17_162)]'
               : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >

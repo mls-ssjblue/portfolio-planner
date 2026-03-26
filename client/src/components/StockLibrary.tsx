@@ -54,7 +54,7 @@ function DraggableStockCard({ stock, isInPortfolio }: { stock: Stock; isInPortfo
       onClick={handleClick}
       className={`group relative flex items-center gap-2.5 p-2.5 rounded-lg border transition-all duration-150 select-none touch-auto
         ${isInPortfolio
-          ? 'border-[oklch(0.75_0.12_75/30%)] bg-[oklch(0.75_0.12_75/8%)]'
+          ? 'border-[oklch(0.72_0.17_162/30%)] bg-[oklch(0.72_0.17_162/8%)]'
           : 'border-[oklch(1_0_0/6%)] bg-[oklch(1_0_0/3%)] hover:border-[oklch(1_0_0/12%)] hover:bg-[oklch(1_0_0/5%)]'
         }`}
     >
@@ -71,7 +71,7 @@ function DraggableStockCard({ stock, isInPortfolio }: { stock: Stock; isInPortfo
         <div className="flex items-center gap-1.5">
           <span className="font-mono text-xs font-semibold text-foreground">{stock.ticker}</span>
           {isInPortfolio && (
-            <span className="text-[10px] text-[oklch(0.75_0.12_75)] font-medium">✓</span>
+            <span className="text-[10px] text-[oklch(0.72_0.17_162)] font-medium">✓</span>
           )}
         </div>
         <p className="text-[10px] text-muted-foreground truncate leading-tight mt-0.5">{stock.name}</p>
@@ -134,18 +134,18 @@ function CatalogResultCard({ ticker, name, industry }: { ticker: string; name: s
       onClick={handleAdd}
       className={`group relative flex items-center gap-2.5 p-2.5 rounded-lg border transition-all duration-150 select-none cursor-pointer
         ${isInPortfolio
-          ? 'border-[oklch(0.75_0.12_75/30%)] bg-[oklch(0.75_0.12_75/8%)]'
+          ? 'border-[oklch(0.72_0.17_162/30%)] bg-[oklch(0.72_0.17_162/8%)]'
           : 'border-[oklch(1_0_0/6%)] bg-[oklch(1_0_0/2%)] hover:border-[oklch(1_0_0/12%)] hover:bg-[oklch(1_0_0/5%)]'
         }`}
     >
       <div className="shrink-0">
-        <Plus className="w-3 h-3 text-muted-foreground opacity-40 group-hover:opacity-80 group-hover:text-[oklch(0.75_0.12_75)]" />
+        <Plus className="w-3 h-3 text-muted-foreground opacity-40 group-hover:opacity-80 group-hover:text-[oklch(0.72_0.17_162)]" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <span className="font-mono text-xs font-semibold text-foreground">{ticker}</span>
           {isInPortfolio && (
-            <span className="text-[10px] text-[oklch(0.75_0.12_75)] font-medium">✓</span>
+            <span className="text-[10px] text-[oklch(0.72_0.17_162)] font-medium">✓</span>
           )}
         </div>
         <p className="text-[10px] text-muted-foreground truncate leading-tight mt-0.5">{name}</p>
@@ -157,7 +157,7 @@ function CatalogResultCard({ ticker, name, industry }: { ticker: string; name: s
         >
           {industry.split(' ')[0]}
         </div>
-        <span className="text-[9px] text-muted-foreground/50 group-hover:text-[oklch(0.75_0.12_75/70%)] transition-colors">+Add</span>
+        <span className="text-[9px] text-muted-foreground/50 group-hover:text-[oklch(0.72_0.17_162/70%)] transition-colors">+Add</span>
       </div>
     </div>
   );
@@ -209,12 +209,12 @@ export default function StockLibrary() {
   const hasSearch = search.trim().length > 0;
 
   return (
-    <div className="flex flex-col h-full bg-[oklch(0.14_0.04_255)] border-r border-[oklch(1_0_0/8%)]">
+    <div className="flex flex-col h-full bg-[oklch(0.14_0.02_220)] border-r border-[oklch(1_0_0/8%)]">
       {/* Header */}
       <div className="p-4 border-b border-[oklch(1_0_0/8%)]">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-[oklch(0.75_0.12_75)]" />
+            <TrendingUp className="w-4 h-4 text-[oklch(0.72_0.17_162)]" />
             <h2 className="text-sm font-semibold text-foreground">Stock Library</h2>
             <span className="text-[10px] text-muted-foreground bg-[oklch(1_0_0/5%)] px-1.5 py-0.5 rounded">
               {stockLibrary.length}
@@ -229,7 +229,7 @@ export default function StockLibrary() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search S&P 500..."
-            className="pl-8 h-8 text-xs bg-[oklch(1_0_0/4%)] border-[oklch(1_0_0/8%)] focus:border-[oklch(0.75_0.12_75/50%)]"
+            className="pl-8 h-8 text-xs bg-[oklch(1_0_0/4%)] border-[oklch(1_0_0/8%)] focus:border-[oklch(0.72_0.17_162/50%)]"
           />
           {search && (
             <button
@@ -253,7 +253,7 @@ export default function StockLibrary() {
                 style={{ touchAction: 'manipulation' }}
                 className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-medium transition-colors
                   ${industryFilter === ind
-                    ? 'bg-[oklch(0.75_0.12_75)] text-[oklch(0.12_0.04_255)]'
+                    ? 'bg-[oklch(0.72_0.17_162)] text-[oklch(0.12_0.02_220)]'
                     : 'bg-[oklch(1_0_0/5%)] text-muted-foreground hover:text-foreground hover:bg-[oklch(1_0_0/8%)]'
                   }`}
               >

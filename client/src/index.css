@@ -52,59 +52,59 @@
 }
 
 :root {
-  /* Portfolio Planner — Emerald & Slate Theme (reduced contrast) */
-  /* Design: Mid-tone slate + muted emerald — softer, easier on the eyes */
+  /* Portfolio Planner — Forest & Amber Theme (low contrast) */
+  /* Design: Warm forest green backgrounds + muted amber accents */
   --radius: 0.5rem;
 
-  /* Core palette — slightly lifted backgrounds, chroma-reduced emerald */
-  --gold: oklch(0.65 0.13 162);          /* emerald primary (dimmer) */
-  --gold-muted: oklch(0.57 0.09 162);    /* emerald muted */
-  --navy: oklch(0.19 0.02 220);          /* slate (lifted from 0.14) */
-  --navy-light: oklch(0.23 0.02 220);    /* slate light */
-  --navy-surface: oklch(0.27 0.02 220);  /* slate surface */
+  /* Core palette */
+  --gold: oklch(0.68 0.12 75);           /* amber primary */
+  --gold-muted: oklch(0.58 0.09 75);     /* amber muted */
+  --navy: oklch(0.20 0.03 155);          /* deep forest green */
+  --navy-light: oklch(0.24 0.03 155);    /* forest light */
+  --navy-surface: oklch(0.28 0.03 155);  /* forest surface */
 
-  /* Scenario colors — desaturated slightly */
-  --bear: oklch(0.52 0.16 25);           /* red — bear */
-  --base-case: oklch(0.65 0.13 162);     /* emerald — base */
-  --bull: oklch(0.57 0.14 200);          /* cyan — bull */
+  /* Scenario colors */
+  --bear: oklch(0.52 0.14 25);           /* muted red */
+  --base-case: oklch(0.68 0.12 75);      /* amber */
+  --bull: oklch(0.58 0.12 145);          /* muted sage green */
 
-  /* Semantic tokens — lifted backgrounds, softened foreground */
-  --background: oklch(0.18 0.02 220);
-  --foreground: oklch(0.84 0.01 150);
-  --card: oklch(0.22 0.02 220);
-  --card-foreground: oklch(0.84 0.01 150);
-  --popover: oklch(0.22 0.02 220);
-  --popover-foreground: oklch(0.84 0.01 150);
-  --primary: oklch(0.65 0.13 162);
-  --primary-foreground: oklch(0.14 0.02 220);
-  --secondary: oklch(0.27 0.02 220);
-  --secondary-foreground: oklch(0.74 0.01 150);
-  --muted: oklch(0.25 0.02 220);
-  --muted-foreground: oklch(0.55 0.02 220);
-  --accent: oklch(0.29 0.03 200);
-  --accent-foreground: oklch(0.84 0.01 150);
-  --destructive: oklch(0.52 0.16 25);
+  /* Semantic tokens — warm forest backgrounds, soft amber text */
+  --background: oklch(0.19 0.03 155);
+  --foreground: oklch(0.82 0.02 80);
+  --card: oklch(0.23 0.03 155);
+  --card-foreground: oklch(0.82 0.02 80);
+  --popover: oklch(0.23 0.03 155);
+  --popover-foreground: oklch(0.82 0.02 80);
+  --primary: oklch(0.68 0.12 75);
+  --primary-foreground: oklch(0.16 0.03 155);
+  --secondary: oklch(0.28 0.03 155);
+  --secondary-foreground: oklch(0.72 0.02 80);
+  --muted: oklch(0.26 0.03 155);
+  --muted-foreground: oklch(0.54 0.02 155);
+  --accent: oklch(0.30 0.04 120);
+  --accent-foreground: oklch(0.82 0.02 80);
+  --destructive: oklch(0.52 0.14 25);
   --destructive-foreground: oklch(0.92 0 0);
   --border: oklch(1 0 0 / 6%);
   --input: oklch(1 0 0 / 8%);
-  --ring: oklch(0.65 0.13 162);
+  --ring: oklch(0.68 0.12 75);
 
-  /* Charts — slightly desaturated */
-  --chart-1: oklch(0.65 0.13 162);   /* emerald */
-  --chart-2: oklch(0.57 0.14 200);   /* cyan */
-  --chart-3: oklch(0.52 0.16 25);    /* red */
-  --chart-4: oklch(0.60 0.12 280);   /* violet */
-  --chart-5: oklch(0.65 0.11 90);    /* lime */
+  /* Charts */
+  --chart-1: oklch(0.68 0.12 75);    /* amber */
+  --chart-2: oklch(0.58 0.12 145);   /* sage */
+  --chart-3: oklch(0.52 0.14 25);    /* red */
+  --chart-4: oklch(0.60 0.10 200);   /* muted teal */
+  --chart-5: oklch(0.62 0.10 50);    /* warm ochre */
 
   /* Sidebar */
-  --sidebar: oklch(0.19 0.02 220);
-  --sidebar-foreground: oklch(0.84 0.01 150);
-  --sidebar-primary: oklch(0.65 0.13 162);
-  --sidebar-primary-foreground: oklch(0.14 0.02 220);
-  --sidebar-accent: oklch(0.25 0.02 220);
-  --sidebar-accent-foreground: oklch(0.84 0.01 150);
+  --sidebar: oklch(0.20 0.03 155);
+  --sidebar-foreground: oklch(0.82 0.02 80);
+  --sidebar-primary: oklch(0.68 0.12 75);
+  --sidebar-primary-foreground: oklch(0.16 0.03 155);
+  --sidebar-accent: oklch(0.26 0.03 155);
+  --sidebar-accent-foreground: oklch(0.82 0.02 80);
   --sidebar-border: oklch(1 0 0 / 6%);
-  --sidebar-ring: oklch(0.65 0.13 162);
+  --sidebar-ring: oklch(0.68 0.12 75);
 }
 
 @layer base {
@@ -170,21 +170,21 @@
     border: 1px solid oklch(1 0 0 / 6%);
   }
 
-  /* Emerald accent border */
+  /* Amber accent border */
   .gold-border-l {
-    border-left: 3px solid oklch(0.65 0.13 162);
+    border-left: 3px solid oklch(0.68 0.12 75);
   }
 
-  /* Scenario badge colors — softened */
-  .badge-bear { background: oklch(0.52 0.16 25 / 18%); color: oklch(0.68 0.14 25); border: 1px solid oklch(0.52 0.16 25 / 35%); }
-  .badge-base { background: oklch(0.65 0.13 162 / 18%); color: oklch(0.74 0.11 162); border: 1px solid oklch(0.65 0.13 162 / 35%); }
-  .badge-bull { background: oklch(0.57 0.14 200 / 18%); color: oklch(0.68 0.12 200); border: 1px solid oklch(0.57 0.14 200 / 35%); }
+  /* Scenario badge colors */
+  .badge-bear { background: oklch(0.52 0.14 25 / 18%); color: oklch(0.68 0.12 25); border: 1px solid oklch(0.52 0.14 25 / 32%); }
+  .badge-base { background: oklch(0.68 0.12 75 / 18%); color: oklch(0.76 0.10 75); border: 1px solid oklch(0.68 0.12 75 / 32%); }
+  .badge-bull { background: oklch(0.58 0.12 145 / 18%); color: oklch(0.68 0.10 145); border: 1px solid oklch(0.58 0.12 145 / 32%); }
 
   /* Scrollbar styling */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: oklch(1 0 0 / 12%); border-radius: 2px; }
-  ::-webkit-scrollbar-thumb:hover { background: oklch(0.65 0.13 162 / 40%); }
+  ::-webkit-scrollbar-thumb:hover { background: oklch(0.68 0.12 75 / 40%); }
 
   /* Number roll animation */
   @keyframes numberRoll {
@@ -203,7 +203,7 @@
 
   /* Drop zone active */
   .drop-zone-active {
-    border-color: oklch(0.65 0.13 162) !important;
-    background: oklch(0.65 0.13 162 / 4%) !important;
+    border-color: oklch(0.68 0.12 75) !important;
+    background: oklch(0.68 0.12 75 / 4%) !important;
   }
 }

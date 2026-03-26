@@ -26,9 +26,9 @@ import { useStockRefresh } from '@/hooks/useStockRefresh';
 type Scenario = 'bear' | 'base' | 'bull';
 
 const SCENARIO_CONFIG = {
-  bear: { label: 'Bear Case', color: 'oklch(0.52 0.16 25)', bg: 'oklch(0.52 0.16 25 / 12%)', icon: TrendingDown },
-  base: { label: 'Base Case', color: 'oklch(0.65 0.13 162)', bg: 'oklch(0.65 0.13 162 / 12%)', icon: Minus },
-  bull: { label: 'Bull Case', color: 'oklch(0.52 0.14 200)', bg: 'oklch(0.52 0.14 200 / 12%)', icon: TrendingUp },
+  bear: { label: 'Bear Case', color: 'oklch(0.52 0.14 25)', bg: 'oklch(0.52 0.14 25 / 10%)', icon: TrendingDown },
+  base: { label: 'Base Case', color: 'oklch(0.68 0.12 75)', bg: 'oklch(0.68 0.12 75 / 10%)', icon: Minus },
+  bull: { label: 'Bull Case', color: 'oklch(0.52 0.12 145)', bg: 'oklch(0.52 0.12 145 / 10%)', icon: TrendingUp },
 };
 
 // ── Controlled number input with debounced save ──────────────────────────────
@@ -123,7 +123,7 @@ function NumberInput({
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
           }}
           step={step}
-          className={`h-8 text-xs bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] focus:border-[oklch(0.65_0.13_162/42%)] text-right
+          className={`h-8 text-xs bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)] focus:border-[oklch(0.68_0.12_75/38%)] text-right
             ${prefix ? 'pl-5' : ''} ${suffix ? 'pr-8' : ''}`}
         />
         {suffix && (
@@ -167,7 +167,7 @@ function MiniGrowthChart({ proj, years }: { proj: StockProjections; years: numbe
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload?.length) {
       return (
-        <div className="bg-[oklch(0.23_0.02_220)] border border-[oklch(1_0_0/10%)] rounded-lg p-2 shadow-xl text-[10px]">
+        <div className="bg-[oklch(0.24_0.03_155)] border border-[oklch(1_0_0/10%)] rounded-lg p-2 shadow-xl text-[10px]">
           <p className="font-semibold text-foreground mb-1">{label}</p>
           {payload.map((p: any) => (
             <div key={p.name} className="flex items-center gap-1.5">
@@ -271,7 +271,7 @@ function ScenarioForm({
                 step={0.5}
               />
               {projData.niGrowthAutoSet && (
-                <span className="absolute top-0 right-0 text-[9px] font-bold px-1 py-0.5 rounded bg-[oklch(0.65_0.13_162/16%)] text-[oklch(0.65_0.13_162)] border border-[oklch(0.65_0.13_162/25%)] leading-none">
+                <span className="absolute top-0 right-0 text-[9px] font-bold px-1 py-0.5 rounded bg-[oklch(0.68_0.12_75/14%)] text-[oklch(0.68_0.12_75)] border border-[oklch(0.68_0.12_75/22%)] leading-none">
                   AUTO
                 </span>
               )}
@@ -555,8 +555,8 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
 
   return (
     <div className={mobileMode
-      ? 'flex flex-col h-full bg-[oklch(0.20_0.02_220)]'
-      : 'fixed inset-y-0 right-0 w-[480px] bg-[oklch(0.20_0.02_220)] border-l border-[oklch(1_0_0/8%)] shadow-2xl z-50 flex flex-col'
+      ? 'flex flex-col h-full bg-[oklch(0.21_0.03_155)]'
+      : 'fixed inset-y-0 right-0 w-[480px] bg-[oklch(0.21_0.03_155)] border-l border-[oklch(1_0_0/8%)] shadow-2xl z-50 flex flex-col'
     }>
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between p-4 border-b border-[oklch(1_0_0/8%)] shrink-0">
@@ -596,7 +596,7 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
       <div className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
 
       {/* ── Live Financials Row ─────────────────────────────────────────────────── */}
-      <div className="px-4 py-3 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.21_0.02_220)]">     {/* Price + Valuation Method */}
+      <div className="px-4 py-3 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.22_0.03_155)]">     {/* Price + Valuation Method */}
         <div className="grid grid-cols-3 gap-3 mb-3">
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Current Price</p>
@@ -630,7 +630,7 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
               <SelectTrigger className="h-8 text-xs bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[oklch(0.23_0.02_220)] border-[oklch(1_0_0/10%)]">
+              <SelectContent className="bg-[oklch(0.24_0.03_155)] border-[oklch(1_0_0/10%)]">
                 <SelectItem value="eps">EPS (NI Growth)</SelectItem>
                 <SelectItem value="pe">P/E (Rev-based)</SelectItem>
                 <SelectItem value="ps">P/S Ratio</SelectItem>
@@ -752,8 +752,8 @@ export default function ProjectionDrawer({ mobileMode = false }: { mobileMode?: 
       {/* ── Scenario Tabs ──────────────────────────────────────────────────────── */}
       <div>
         <div className="p-4">
-          <div className="mb-3 p-2.5 rounded-lg bg-[oklch(0.65_0.13_162/6%)] border border-[oklch(0.65_0.13_162/16%)]">
-            <p className="text-[10px] text-[oklch(0.65_0.13_162)] font-medium">
+          <div className="mb-3 p-2.5 rounded-lg bg-[oklch(0.68_0.12_75/5%)] border border-[oklch(0.68_0.12_75/14%)]">
+            <p className="text-[10px] text-[oklch(0.68_0.12_75)] font-medium">
               <BarChart2 className="w-3 h-3 inline mr-1" />
               Projection chain: Revenue Growth → Net Margin → Net Income → EPS → × P/E Multiple = Target Price
             </p>

@@ -132,17 +132,17 @@ export default function AddCustomStockDialog() {
       <DialogTrigger asChild>
         <button
           style={{ touchAction: 'manipulation' }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-[oklch(0.65_0.13_162)] hover:bg-[oklch(0.65_0.13_162/6%)] border border-[oklch(1_0_0/8%)] hover:border-[oklch(0.65_0.13_162/25%)] transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-[oklch(0.68_0.12_75)] hover:bg-[oklch(0.68_0.12_75/5%)] border border-[oklch(1_0_0/8%)] hover:border-[oklch(0.68_0.12_75/22%)] transition-all"
         >
           <Plus className="w-3.5 h-3.5" />
           Custom Stock
         </button>
       </DialogTrigger>
 
-      <DialogContent className="bg-[oklch(0.20_0.02_220)] border-[oklch(1_0_0/10%)] text-foreground max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-[oklch(0.21_0.03_155)] border-[oklch(1_0_0/10%)] text-foreground max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-serif text-lg font-semibold text-foreground flex items-center gap-2">
-            <Plus className="w-4 h-4 text-[oklch(0.65_0.13_162)]" />
+            <Plus className="w-4 h-4 text-[oklch(0.68_0.12_75)]" />
             Add Custom Stock
           </DialogTitle>
         </DialogHeader>
@@ -173,7 +173,7 @@ export default function AddCustomStockDialog() {
               <SelectTrigger className="h-8 text-sm bg-[oklch(1_0_0/5%)] border-[oklch(1_0_0/10%)]">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[oklch(0.23_0.02_220)] border-[oklch(1_0_0/10%)]">
+              <SelectContent className="bg-[oklch(0.24_0.03_155)] border-[oklch(1_0_0/10%)]">
                 {INDUSTRIES.map((ind) => (
                   <SelectItem key={ind} value={ind}>{ind}</SelectItem>
                 ))}
@@ -230,8 +230,8 @@ export default function AddCustomStockDialog() {
             </FieldRow>
           </div>
 
-          <div className="p-3 rounded-lg bg-[oklch(0.65_0.13_162/6%)] border border-[oklch(0.65_0.13_162/16%)]">
-            <p className="text-[11px] text-[oklch(0.65_0.13_162)]">
+          <div className="p-3 rounded-lg bg-[oklch(0.68_0.12_75/5%)] border border-[oklch(0.68_0.12_75/14%)]">
+            <p className="text-[11px] text-[oklch(0.68_0.12_75)]">
               EPS, P/E, P/S, and net margin will be auto-calculated from the values above.
               You can fine-tune projections in the Projection Drawer after adding.
             </p>
@@ -248,7 +248,7 @@ export default function AddCustomStockDialog() {
             </Button>
             <Button
               size="sm"
-              className="flex-1 h-9 text-sm bg-[oklch(0.65_0.13_162)] hover:bg-[oklch(0.62_0.12_162)] text-[oklch(0.1_0_0)]"
+              className="flex-1 h-9 text-sm bg-[oklch(0.68_0.12_75)] hover:bg-[oklch(0.62_0.10_75)] text-[oklch(0.1_0_0)]"
               onClick={handleSubmit}
             >
               Add to Library

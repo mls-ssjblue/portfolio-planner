@@ -65,7 +65,7 @@ function AllocationDonut() {
     if (active && payload?.length) {
       const d = payload[0].payload;
       return (
-        <div className="bg-[oklch(0.23_0.02_220)] border border-[oklch(1_0_0/10%)] rounded-lg p-2.5 shadow-xl">
+        <div className="bg-[oklch(0.24_0.03_155)] border border-[oklch(1_0_0/10%)] rounded-lg p-2.5 shadow-xl">
           <p className="font-mono text-sm font-semibold text-foreground">{d.name}</p>
           <p className="text-xs text-muted-foreground">{d.value.toFixed(1)}%</p>
           <p className="text-xs font-medium" style={{ color: d.color }}>{formatCurrency(d.dollarValue)}</p>
@@ -167,7 +167,7 @@ function ScenarioComparison() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload?.length) {
       return (
-        <div className="bg-[oklch(0.23_0.02_220)] border border-[oklch(1_0_0/10%)] rounded-lg p-2.5 shadow-xl">
+        <div className="bg-[oklch(0.24_0.03_155)] border border-[oklch(1_0_0/10%)] rounded-lg p-2.5 shadow-xl">
           <p className="font-mono text-xs font-semibold text-foreground mb-1">{label}</p>
           {payload.map((p: any) => (
             <div key={p.name} className="flex items-center gap-2 text-xs">
@@ -261,7 +261,7 @@ function GrowthChart() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload?.length) {
       return (
-        <div className="bg-[oklch(0.23_0.02_220)] border border-[oklch(1_0_0/10%)] rounded-lg p-2.5 shadow-xl">
+        <div className="bg-[oklch(0.24_0.03_155)] border border-[oklch(1_0_0/10%)] rounded-lg p-2.5 shadow-xl">
           <p className="text-xs font-semibold text-foreground mb-1">{label}</p>
           {payload.map((p: any) => (
             <div key={p.name} className="flex items-center gap-2 text-xs">
@@ -402,10 +402,10 @@ function StockDetailTable() {
 // ── Main Analytics Panel ───────────────────────────────────────────────────
 export default function AnalyticsPanel() {
   return (
-    <div className="flex flex-col h-full bg-[oklch(0.19_0.02_220)]">
+    <div className="flex flex-col h-full bg-[oklch(0.20_0.03_155)]">
       <div className="px-4 py-3 border-b border-[oklch(1_0_0/8%)]">
         <h2 className="font-serif text-base font-semibold text-foreground flex items-center gap-2">
-          <Activity className="w-4 h-4 text-[oklch(0.65_0.13_162)]" />
+          <Activity className="w-4 h-4 text-[oklch(0.68_0.12_75)]" />
           Portfolio Analytics
         </h2>
       </div>
@@ -413,23 +413,23 @@ export default function AnalyticsPanel() {
       <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
         <Tabs defaultValue="allocation" className="h-full">
           <TabsList className="w-full bg-[oklch(1_0_0/4%)] rounded-none border-b border-[oklch(1_0_0/8%)] px-2 justify-start gap-0 h-10">
-            <TabsTrigger value="allocation" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.65_0.13_162)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
+            <TabsTrigger value="allocation" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.68_0.12_75)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
               <PieIcon className="w-3 h-3 sm:mr-1.5" />
               <span className="hidden sm:inline">Allocation</span>
             </TabsTrigger>
-            <TabsTrigger value="scenarios" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.65_0.13_162)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
+            <TabsTrigger value="scenarios" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.68_0.12_75)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
               <BarChart3 className="w-3 h-3 sm:mr-1.5" />
               <span className="hidden sm:inline">Scenarios</span>
             </TabsTrigger>
-            <TabsTrigger value="growth" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.65_0.13_162)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
+            <TabsTrigger value="growth" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.68_0.12_75)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
               <TrendingUp className="w-3 h-3 sm:mr-1.5" />
               <span className="hidden sm:inline">Growth</span>
             </TabsTrigger>
-            <TabsTrigger value="detail" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.65_0.13_162)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
+            <TabsTrigger value="detail" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.68_0.12_75)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
               <Activity className="w-3 h-3 sm:mr-1.5" />
               <span className="hidden sm:inline">Detail</span>
             </TabsTrigger>
-            <TabsTrigger value="compare" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.65_0.13_162)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
+            <TabsTrigger value="compare" className="text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[oklch(0.68_0.12_75)] data-[state=active]:bg-transparent px-2 sm:px-3 h-10">
               <GitCompare className="w-3 h-3 sm:mr-1.5" />
               <span className="hidden sm:inline">Compare</span>
             </TabsTrigger>

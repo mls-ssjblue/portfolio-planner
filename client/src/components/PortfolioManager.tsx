@@ -603,13 +603,13 @@ export default function PortfolioManager() {
         {activePortfolio && (
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Capital & Controls bar */}
-            <div className="px-4 py-3 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.22_0.03_50)]">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 sm:flex-wrap">
+            <div className="px-3 py-2 border-b border-[oklch(1_0_0/8%)] bg-[oklch(0.22_0.03_50)]">
+              <div className="flex flex-row items-center gap-2 flex-wrap sm:gap-4">
                 {/* Total Capital */}
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-[oklch(0.66_0.10_55)] shrink-0" />
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <DollarSign className="w-3.5 h-3.5 text-[oklch(0.66_0.10_55)] shrink-0" />
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Capital</p>
+                    <p className="text-[9px] text-muted-foreground uppercase tracking-wider leading-none mb-0.5">Capital</p>
                     {capitalEditing ? (
                       <Input
                         autoFocus
@@ -617,12 +617,12 @@ export default function PortfolioManager() {
                         onChange={(e) => setCapitalInput(e.target.value)}
                         onBlur={() => handleCapitalChange(capitalInput || activePortfolio.totalCapital.toString())}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleCapitalChange(capitalInput); if (e.key === 'Escape') setCapitalEditing(false); }}
-                        className="h-7 w-32 text-sm font-mono bg-[oklch(1_0_0/8%)] border-[oklch(0.66_0.10_55/34%)]"
+                        className="h-6 w-28 text-xs font-mono bg-[oklch(1_0_0/8%)] border-[oklch(0.66_0.10_55/34%)]"
                       />
                     ) : (
                       <button
                         onClick={() => { setCapitalInput(''); setCapitalEditing(true); }}
-                        className="text-lg font-semibold font-mono text-foreground hover:text-[oklch(0.66_0.10_55)] transition-colors"
+                        className="text-sm font-semibold font-mono text-foreground hover:text-[oklch(0.66_0.10_55)] transition-colors leading-none"
                       >
                         {formatCurrency(activePortfolio.totalCapital)}
                       </button>
@@ -631,7 +631,7 @@ export default function PortfolioManager() {
                 </div>
 
                 {/* Capital slider */}
-                <div className="flex-1 min-w-0 sm:min-w-40">
+                <div className="flex-1 min-w-0 min-w-[6rem] sm:min-w-40">
                   <Slider
                     value={[Math.log10(activePortfolio.totalCapital)]}
                     onValueChange={(v) => setTotalCapital(Math.round(Math.pow(10, v[0])))}
@@ -640,53 +640,53 @@ export default function PortfolioManager() {
                     step={0.01}
                     className="[&_[role=slider]]:bg-[oklch(0.66_0.10_55)] [&_[role=slider]]:border-[oklch(0.66_0.10_55)] [&_.bg-primary]:bg-[oklch(0.66_0.10_55)]"
                   />
-                  <div className="flex justify-between text-[9px] text-muted-foreground mt-0.5">
+                  <div className="hidden sm:flex justify-between text-[9px] text-muted-foreground mt-0.5">
                     <span>$1K</span><span>$10K</span><span>$100K</span><span>$1M</span><span>$10M</span><span>$100M</span>
                   </div>
                 </div>
 
                 {/* Allocation mode toggle */}
-                <div className="flex items-center gap-1 bg-[oklch(1_0_0/5%)] rounded-lg p-1 shrink-0">
+                <div className="flex items-center gap-0.5 bg-[oklch(1_0_0/5%)] rounded-md p-0.5 shrink-0">
                   <button
                     onClick={() => setAllocationMode('percentage')}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors
+                    className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium transition-colors
                       ${activePortfolio.allocationMode === 'percentage'
                         ? 'bg-[oklch(0.66_0.10_55)] text-[oklch(0.19_0.03_50)]'
                         : 'text-muted-foreground hover:text-foreground'
                       }`}
                   >
-                    <Percent className="w-3 h-3" />
+                    <Percent className="w-2.5 h-2.5" />
                     %
                   </button>
                   <button
                     onClick={() => setAllocationMode('dollar')}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors
+                    className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium transition-colors
                       ${activePortfolio.allocationMode === 'dollar'
                         ? 'bg-[oklch(0.66_0.10_55)] text-[oklch(0.19_0.03_50)]'
                         : 'text-muted-foreground hover:text-foreground'
                       }`}
                   >
-                    <DollarSign className="w-3 h-3" />
+                    <DollarSign className="w-2.5 h-2.5" />
                     $
                   </button>
                 </div>
 
                 {/* Projection years */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
+                <div className="flex items-center gap-1 shrink-0">
+                  <Clock className="w-3 h-3 text-muted-foreground hidden sm:block" />
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Horizon</p>
-                    <div className="flex items-center gap-1">
+                    <p className="text-[9px] text-muted-foreground uppercase tracking-wider leading-none mb-0.5">Horizon</p>
+                    <div className="flex items-center gap-0.5">
                       <button
                         onClick={() => setProjectionYears(Math.max(1, activePortfolio.projectionYears - 1))}
-                        className="w-5 h-5 rounded bg-[oklch(1_0_0/5%)] flex items-center justify-center text-muted-foreground hover:text-foreground text-xs"
+                        className="w-4 h-4 rounded bg-[oklch(1_0_0/5%)] flex items-center justify-center text-muted-foreground hover:text-foreground text-xs leading-none"
                       >
                         −
                       </button>
-                      <span className="font-mono text-sm font-semibold w-8 text-center">{activePortfolio.projectionYears}y</span>
+                      <span className="font-mono text-xs font-semibold w-6 text-center">{activePortfolio.projectionYears}y</span>
                       <button
                         onClick={() => setProjectionYears(Math.min(20, activePortfolio.projectionYears + 1))}
-                        className="w-5 h-5 rounded bg-[oklch(1_0_0/5%)] flex items-center justify-center text-muted-foreground hover:text-foreground text-xs"
+                        className="w-4 h-4 rounded bg-[oklch(1_0_0/5%)] flex items-center justify-center text-muted-foreground hover:text-foreground text-xs leading-none"
                       >
                         +
                       </button>
@@ -695,7 +695,7 @@ export default function PortfolioManager() {
                 </div>
 
                 {/* Allocation health */}
-                <div className="shrink-0 ml-auto flex items-center gap-3">
+                <div className="shrink-0 ml-auto flex items-center gap-2">
                   {hasStocks && Math.abs(totalAllocated - 100) > 0.5 && (
                     <button
                       onClick={() => { normalizeAllocations(); }}
@@ -705,7 +705,7 @@ export default function PortfolioManager() {
                     </button>
                   )}
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Allocated</p>
+                    <p className="text-[9px] text-muted-foreground uppercase tracking-wider leading-none mb-0.5">Allocated</p>
                     <p className={`font-mono text-sm font-semibold ${isOver100 ? 'text-destructive' : hasStocks && Math.abs(totalAllocated - 100) < 0.5 ? 'text-[oklch(0.50_0.09_140)]' : hasStocks ? 'text-[oklch(0.66_0.10_55)]' : 'text-muted-foreground'}`}>
                       {hasStocks ? `${totalAllocated.toFixed(1)}%` : '—'}
                     </p>

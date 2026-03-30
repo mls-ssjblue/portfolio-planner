@@ -11,9 +11,9 @@ import { exportPortfolioCSV, exportAllPortfoliosJSON } from '@/lib/exportUtils';
 import { toast } from 'sonner';
 
 const SCENARIO_COLORS = {
-  bear: '#ef4444',
-  base: '#3b82f6',
-  bull: '#22c55e',
+  bear: '#c0614a', // muted terracotta-red
+  base: '#d4a85a', // soft amber
+  bull: '#8fad7a', // muted sage green
 };
 
 const GOLD = 'oklch(0.66 0.10 55)';
@@ -28,12 +28,12 @@ function formatK(v: number): string {
 function CAGRBadge({ cagr }: { cagr: number }) {
   const pct = (cagr * 100).toFixed(1);
   if (cagr > 0.05) return (
-    <span className="flex items-center gap-0.5 text-emerald-400 font-mono text-xs font-semibold">
+    <span className="flex items-center gap-0.5 font-mono text-xs font-semibold" style={{ color: '#8fad7a' }}>
       <TrendingUp className="w-3 h-3" />{pct}%
     </span>
   );
   if (cagr < -0.02) return (
-    <span className="flex items-center gap-0.5 text-red-400 font-mono text-xs font-semibold">
+    <span className="flex items-center gap-0.5 font-mono text-xs font-semibold" style={{ color: '#c0614a' }}>
       <TrendingDown className="w-3 h-3" />{pct}%
     </span>
   );
@@ -116,13 +116,13 @@ export default function PortfolioComparison() {
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 6%)" vertical={false} />
                 <XAxis
                   dataKey="name"
-                  tick={{ fill: 'oklch(0.7 0.01 286)', fontSize: 10 }}
+                  tick={{ fill: 'oklch(0.55 0.02 50)', fontSize: 10 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
                   tickFormatter={(v) => formatK(v)}
-                  tick={{ fill: 'oklch(0.7 0.01 286)', fontSize: 10 }}
+                  tick={{ fill: 'oklch(0.55 0.02 50)', fontSize: 10 }}
                   axisLine={false}
                   tickLine={false}
                   width={55}
@@ -139,7 +139,7 @@ export default function PortfolioComparison() {
                 />
                 <Legend
                   wrapperStyle={{ fontSize: 10, paddingTop: 8 }}
-                  formatter={(value) => <span style={{ color: 'oklch(0.7 0.01 286)' }}>{value}</span>}
+                  formatter={(value) => <span style={{ color: 'oklch(0.55 0.02 50)' }}>{value}</span>}
                 />
                 <Bar dataKey="Bear" fill={SCENARIO_COLORS.bear} radius={[3, 3, 0, 0]} />
                 <Bar dataKey="Base" fill={SCENARIO_COLORS.base} radius={[3, 3, 0, 0]} />
@@ -212,7 +212,7 @@ export default function PortfolioComparison() {
                         <div className="flex items-center justify-between">
                           <span
                             className="text-[10px] font-mono"
-                            style={{ color: gain >= 0 ? '#22c55e' : '#ef4444' }}
+                            style={{ color: gain >= 0 ? '#8fad7a' : '#c0614a' }}
                           >
                             {gain >= 0 ? '+' : ''}{gainPct.toFixed(1)}%
                           </span>

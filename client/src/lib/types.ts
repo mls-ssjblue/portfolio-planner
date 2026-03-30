@@ -120,20 +120,20 @@ export interface Portfolio {
 }
 
 export const INDUSTRY_COLORS: Record<Industry, string> = {
-  'Technology': '#3b82f6',
-  'Healthcare': '#10b981',
-  'Financials': '#f59e0b',
-  'Consumer Discretionary': '#8b5cf6',
-  'Consumer Staples': '#06b6d4',
-  'Energy': '#f97316',
-  'Industrials': '#6b7280',
-  'Materials': '#84cc16',
-  'Real Estate': '#ec4899',
-  'Utilities': '#14b8a6',
-  'Communication Services': '#a855f7',
-  'Crypto': '#f59e0b',
-  'ETF': '#94a3b8',
-  'Other': '#64748b',
+  'Technology':             '#c8956b', // warm terracotta
+  'Healthcare':             '#8fad7a', // muted sage
+  'Financials':             '#d4a85a', // soft amber
+  'Consumer Discretionary': '#b87c5e', // dusty sienna
+  'Consumer Staples':       '#a89070', // warm tan
+  'Energy':                 '#c97c3a', // burnt orange
+  'Industrials':            '#9a8878', // warm grey-brown
+  'Materials':              '#b5a46a', // golden khaki
+  'Real Estate':            '#c4856a', // muted coral
+  'Utilities':              '#7aaa8f', // soft sage-teal
+  'Communication Services': '#b08a9a', // dusty mauve
+  'Crypto':                 '#d4a85a', // soft amber
+  'ETF':                    '#a09080', // warm stone
+  'Other':                  '#8a7a6a', // warm mid-brown
 };
 
 export const DEFAULT_SCENARIO: ScenarioProjection = {

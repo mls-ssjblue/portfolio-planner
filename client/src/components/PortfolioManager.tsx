@@ -191,7 +191,7 @@ function SortableStockRow({
                 {livePriceChangePct !== undefined && (
                   <span
                     className={`text-[10px] font-mono font-semibold ml-1 shrink-0 ${
-                      livePriceChangePct >= 0 ? 'text-emerald-400' : 'text-red-400'
+                      livePriceChangePct >= 0 ? 'text-[#8fad7a]' : 'text-[#c0614a]'
                     }`}
                   >
                     {livePriceChangePct >= 0 ? '+' : ''}{livePriceChangePct.toFixed(2)}%
@@ -223,8 +223,8 @@ function SortableStockRow({
           <div
             className={`shrink-0 text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded ${
               upsidePct >= 0
-                ? 'bg-emerald-500/15 text-emerald-400'
-                : 'bg-red-500/15 text-red-400'
+                ? 'bg-[#8fad7a]/15 text-[#8fad7a]'
+                : 'bg-[#c0614a]/15 text-[#c0614a]'
             }`}
             title={`Base-case target $${baseTargetPrice.toFixed(0)} vs current $${currentPrice.toFixed(0)}`}
           >
